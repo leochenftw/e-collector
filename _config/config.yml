@@ -1,0 +1,36 @@
+---
+Name: 'e-collector'
+---
+# Member:
+#   extensions:
+#     - StoredCreditcardExtension
+Leochenftw\eCommerce\eCollector:
+  DefaultCurrency: 'NZD'
+  MerchantSettings:
+    # MerchantHomepageURL: "https://www.nzyogo.co.nz"
+    SuccessURL: "/checkout/success"
+    FailureURL: "/checkout/fail"
+    CancellationURL: "/checkout/cancel"
+    CardSavedURL: "/checkout/saved"
+    PaymentScheduledURL: "/checkout/pending"
+  API:
+    POLi: 'https://poliapi.apac.paywithpoli.com/api/v2/Transaction'
+    Paystation: 'https://www.paystation.co.nz/direct/paystation.dll'
+    PaystationLookup: 'https://payments.paystation.co.nz/lookup/'
+    DPS : 'https://sec.paymentexpress.com/pxaccess/pxpay.aspx'
+  GatewaySettings:
+    POLi:
+        CERT: '/var/www/ca-bundle.crt'
+    Paystation:
+        paystation: '_empty'
+        pstn_gi: 'PAYSTATION'
+        pstn_nr: 't'
+        pstn_tm: 't'
+  AdditionalSettings:
+    Paystation:
+      QuickMode: 1
+Leochenftw\eCommerce\eCollector\Payment\Payment:
+  payment_methods:
+    DPS : DPS
+    POLi : POLi
+    Paystation : Paystation
