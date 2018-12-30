@@ -20,4 +20,8 @@ class ProductExtension extends DataExtension
         'Price'         =>  'Currency',
         'UnitWeight'    =>  'Decimal'
     ];
+
+    private static $indexes = [
+        'SKU'   =>  true
+    ];
 }

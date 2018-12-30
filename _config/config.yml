@@ -34,3 +34,6 @@ Leochenftw\eCommerce\eCollector\Payment\Payment:
     DPS : DPS
     POLi : POLi
     Paystation : Paystation
+
+SilverStripe\CMS\Model\SiteTree:
+  hide_ancestor: 'Leochenftw\eCommerce\eCollector\Model\Product'
