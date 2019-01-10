@@ -46,6 +46,10 @@ class Order extends DataObject
                                     ]
     ];
 
+    private static $cascade_deletes = [
+        'Items'
+    ];
+
     /**
      * Defines summary fields commonly used in table columns
      * as a quick overview of the data for this dataobject
