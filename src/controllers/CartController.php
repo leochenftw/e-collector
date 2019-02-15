@@ -19,7 +19,7 @@ use SilverStripe\View\ArrayData;
  */
 class CartController extends PageController
 {
-    public function index()
+    public function index($request)
     {
         if ($this->request->isPost() && !empty($this->request->postVar('action'))) {
             $this->{'do_' . $this->request->postVar('action')}();
