@@ -30,6 +30,7 @@ class Address extends DataObject
         'Phone'         =>  'Varchar(32)',
         'Company'       =>  'Varchar(512)',
         'Address'       =>  'Text',
+        'Apartment'     =>  'Varchar(64)',
         'Suburb'        =>  'Varchar(64)',
         'City'          =>  'Varchar(64)',
         'Region'        =>  'Varchar(64)',

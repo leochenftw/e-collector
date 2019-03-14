@@ -36,7 +36,6 @@ class eCollector
 
         $order->write();
 
-
         return $order;
     }
 

@@ -35,7 +35,23 @@ class Order extends DataObject
         'Status'                =>  'Enum("Pending,Payment Received,Shipped,Cancelled,Refunded,Completed")',
         'AnonymousCustomer'     =>  'Varchar(128)',
         'TotalAmount'           =>  'Currency',
-        'TotalWeight'           =>  'Decimal'
+        'TotalWeight'           =>  'Decimal',
+        'Email'                 =>  'Varchar(256)',
+        'Phone'                 =>  'Varchar(128)',
+        'ShippingAddress'       =>  'Text',
+        'ShippingApartment'     =>  'Varchar(64)',
+        'ShippingSuburb'        =>  'Varchar(128)',
+        'ShippingTown'          =>  'Varchar(128)',
+        'ShippingRegion'        =>  'Varchar(128)',
+        'ShippingCountry'       =>  'Varchar(128)',
+        'ShippingPostcode'      =>  'Varchar(128)',
+        'BillingAddress'        =>  'Text',
+        'BillingApartment'      =>  'Varchar(64)',
+        'BillingSuburb'         =>  'Varchar(128)',
+        'BillingTown'           =>  'Varchar(128)',
+        'BillingRegion'         =>  'Varchar(128)',
+        'BillingCountry'        =>  'Varchar(128)',
+        'BillingPostcode'       =>  'Varchar(128)'
     ];
 
     private static $indexes = [
@@ -129,6 +145,30 @@ class Order extends DataObject
             );
         }
 
+        $fields->addFieldsToTab(
+            'Root.Shipping',
+            [
+                TextareaField::create('ShippingAddress', 'Address'),
+                TextField::create('ShippingSuburb', 'Suburb'),
+                TextField::create('ShippingTown', 'Town'),
+                TextField::create('ShippingRegion', 'Region'),
+                TextField::create('ShippingCountry', 'Country'),
+                TextField::create('ShippingPostcode', 'Postcode'),
+            ]
+        );
+
+        $fields->addFieldsToTab(
+            'Root.Billing',
+            [
+                TextareaField::create('BillingAddress', 'Address'),
+                TextField::create('BillingSuburb', 'Suburb'),
+                TextField::create('BillingTown', 'Town'),
+                TextField::create('BillingRegion', 'Region'),
+                TextField::create('BillingCountry', 'Country'),
+                TextField::create('BillingPostcode', 'Postcode'),
+            ]
+        );
+
         $fields->fieldByName('Root.Main.FreightID')->setTitle('Freight Provider');
 
         // Debugger::inspect(Paystation::process($this->getTotalAmount(), $this->MerchantReference));
@@ -171,4 +211,39 @@ class Order extends DataObject
 
         $this->write();
     }
+
+    /**
+     * Event handler called before writing to the database.
+     */
+     public function onBeforeWrite()
+     {
+         parent::onBeforeWrite();
+         if (empty($this->BillingApartment)) {
+             $this->BillingApartment =   $this->ShippingApartment;
+         }
+
+         if (empty($this->BillingAddress)) {
+             $this->BillingAddress   =   $this->ShippingAddress;
+         }
+
+         if (empty($this->BillingSuburb)) {
+             $this->BillingSuburb    =   $this->ShippingSuburb;
+         }
+
+         if (empty($this->BillingTown)) {
+             $this->BillingTown      =   $this->ShippingTown;
+         }
+
+         if (empty($this->BillingRegion)) {
+             $this->BillingRegion    =   $this->ShippingRegion;
+         }
+
+         if (empty($this->BillingCountry)) {
+             $this->BillingCountry   =   $this->ShippingCountry;
+         }
+
+         if (empty($this->BillingPostcode)) {
+             $this->BillingPostcode  =   $this->ShippingPostcode;
+         }
+     }
 }
