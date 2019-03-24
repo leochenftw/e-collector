@@ -14,7 +14,6 @@ class ProductExtension extends DataExtension
      * @var array
      */
     private static $db = [
-        'isDigital'     =>  'Boolean',
         'SKU'           =>  'Varchar(64)',
         'OutOfStock'    =>  'Boolean',
         'Price'         =>  'Currency',
@@ -24,4 +23,30 @@ class ProductExtension extends DataExtension
     private static $indexes = [
         'SKU'   =>  true
     ];
+
+    /**
+     * Update Fields
+     * @return FieldList
+     */
+    public function updateCMSFields(FieldList $fields)
+    {
+        $owner = $this->owner;
+        if ($owner->isDigital) {
+            $fields->removeByName([
+                'UnitWeight'
+            ]);
+        }
+        return $fields;
+    }
+
+    /**
+     * Event handler called before writing to the database.
+     */
+    public function onBeforeWrite()
+    {
+        parent::onBeforeWrite();
+        if ($this->owner->isDigital) {
+            $this->owner->UnitWeight    =   0;
+        }
+    }
 }

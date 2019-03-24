@@ -2,7 +2,10 @@
 
 namespace Leochenftw\eCommerce\eCollector\Model;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\Security\Member;
 use Leochenftw\eCommerce\eCollector\Model\Order;
+use Leochenftw\eCommerce\eCollector\Extensions\ProductOrderItemCommonFields;
+use Leochenftw\Debugger;
 
 /**
  * Description
@@ -25,7 +28,17 @@ class OrderItem extends DataObject
         'Quantity'      =>  'Int',
         'Subtotal'      =>  'Currency',
         'Subweight'     =>  'Decimal',
-        'isRefunded'    =>  'Boolean'
+        'isRefunded'    =>  'Boolean',
+        'PayableTotal'  =>  'Currency'
+    ];
+
+    /**
+     * Defines extension names and parameters to be applied
+     * to this object upon construction.
+     * @var array
+     */
+    private static $extensions = [
+        ProductOrderItemCommonFields::class
     ];
 
     /**
@@ -37,18 +50,23 @@ class OrderItem extends DataObject
     ];
 
     /**
-     * Add default values to database
-     * @var array
-     */
-    private static $defaults = [
-        'Quantity'  =>  1
-    ];
-
-    /**
      * Has_one relationship
      * @var array
      */
     private static $has_one = [
-        'Order'     =>  Order::class
+        'Order'     =>  Order::class,
+        'Discount'  =>  Discount::class
     ];
+
+    public function populateDefaults()
+    {
+        $this->Quantity =   1;
+        if ($member = Member::currentUser()) {
+            if ($group = $member->Groups()->first()) {
+                if ($group->Discount()->exists()) {
+                    $this->DiscountID   =   $group->DiscountID;
+                }
+            }
+        }
+    }
 }

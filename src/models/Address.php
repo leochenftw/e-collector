@@ -38,6 +38,10 @@ class Address extends DataObject
         'Postcode'      =>  'Varchar(16)'
     ];
 
+    private static $indexes = [
+        
+    ];
+
     /**
      * Has_one relationship
      * @var array

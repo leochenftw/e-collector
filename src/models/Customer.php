@@ -6,6 +6,7 @@ use SilverStripe\Forms\TextareaField;
 use SilverStripe\Forms\TextField;
 use Leochenftw\eCommerce\eCollector\Model\Order;
 use Leochenftw\eCommerce\eCollector\Model\Address;
+use SilverStripe\Security\Group;
 
 class Customer extends Member
 {
@@ -56,5 +57,24 @@ class Customer extends Member
         ]);
 
         return $fields;
+    }
+
+    /**
+     * Event handler called after writing to the database.
+     */
+    public function onAfterWrite()
+    {
+        parent::onAfterWrite();
+        $this->addToGroupByCode('customers', 'Customers');
+    }
+
+    public function requireDefaultRecords()
+    {
+        if (empty(Group::get()->filter(['Code' => 'customers'])->first())) {
+            $group          =   Group::create();
+            $group->Code    =   'customers';
+            $group->Title   =   'Customers';
+            $group->write();
+        }
     }
 }

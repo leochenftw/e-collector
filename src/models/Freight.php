@@ -30,6 +30,17 @@ class Freight extends DataObject
         'ContainerCapacity'     =>  'Decimal'
     ];
 
+    public function getData()
+    {
+        return [
+            'id'        =>  $this->ID,
+            'title'     =>  $this->Title,
+            'url'       =>  $this->Website,
+            'logo'      =>  $this->getSummaryLogo(80)->getAbsoluteURL(),
+            'rate'      =>  $this->getSummaryPrice()
+        ];
+    }
+
     /**
      * Has_one relationship
      * @var array
@@ -66,10 +77,10 @@ class Freight extends DataObject
         'getSummaryPrice'   =>  'Cost'
     ];
 
-    public function getSummaryLogo()
+    public function getSummaryLogo($height = 20)
     {
         if ($this->Logo()->exists()) {
-            return $this->Logo()->ScaleHeight(20);
+            return $this->Logo()->ScaleHeight($height);
         }
 
         return false;
@@ -77,12 +88,12 @@ class Freight extends DataObject
 
     private function simple_under_x()
     {
-        return ($this->MeasurementUnit == 'KG' ? $this->AfterX : strtolower(round($this->AfterX))) . ' ' . $this->MeasurementUnit . '(s)';
+        return ($this->MeasurementUnit == 'KG' ? $this->AfterX : strtolower(round($this->AfterX))) . ' ' . strtolower($this->MeasurementUnit) . ($this->ContainerCapacity > 1 ? 's' : '');
     }
 
     public function getSummaryPrice()
     {
-        return '$' . $this->BasePrice . ' under ' . $this->simple_under_x() . ', and + $' . $this->Increment . ' for every additional ' . $this->MeasurementUnit . '. Container cost is $' . $this->ContainerPrice . ' for every ' . $this->ContainerCapacity . ' ' . $this->MeasurementUnit;
+        return '$' . $this->BasePrice . ' under ' . $this->simple_under_x() . ', and + $' . $this->Increment . ' for every additional ' . strtolower($this->MeasurementUnit) . '. Container cost is $' . $this->ContainerPrice . ' for every ' . ((int) ($this->ContainerCapacity)) . ' ' . strtolower($this->MeasurementUnit) . ($this->ContainerCapacity > 1 ? 's' : '');
     }
 
     /**
@@ -105,7 +116,7 @@ class Freight extends DataObject
 
         $after_x    =   $fields->fieldByName('Root.Main.AfterX');
         $after_x->setTitle('After X ' . ($this->exists() ? $this->MeasurementUnit : 'KG') . '(s)')
-            ->setDescription('This when the freight cost starts to increase.');
+            ->setDescription('This is when the freight cost starts to increase.');
 
         $increment  =   $fields->fieldByName('Root.Main.Increment');
         $increment->setDescription('After X ' . ($this->exists() ? $this->MeasurementUnit : 'KG') . '(s), the freight cost is going to increase by this value.');
@@ -125,7 +136,7 @@ class Freight extends DataObject
         if ($this->ContainerCapacity == 0) {
             return 0;
         }
-        
+
         if ($this->ContainerCapacity > $value) {
             return $this->ContainerPrice;
         }
