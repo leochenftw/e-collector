@@ -302,7 +302,7 @@ class Order extends DataObject
          $rate  =   (float) Config::inst()->get(eCollector::class, 'GSTRate');
          $items =   $this->Items()->filter(['isExempt' => false]);
          foreach ($items as $item) {
-             $gst   +=  $item->Subtotal * $rate;
+             $gst   +=  $item->PayableTotal * $rate;
          }
 
          return $gst;

@@ -10,8 +10,12 @@ use SilverStripe\Core\Config\Config;
 
 class eCollector
 {
-    public static function get_cart()
+    public static function get_cart($order_id = null)
     {
+        if (!empty($order_id)) {
+            return Order::get()->byID($order_id);
+        }
+
         $member         =   Security::getCurrentUser();
 
         if (!static::can_order($member)) {

@@ -10,6 +10,7 @@ use Leochenftw\Debugger;
 use Leochenftw\eCommerce\eCollector\API\Paystation;
 use Leochenftw\eCommerce\eCollector\Model\Order;
 use SilverStripe\View\ArrayData;
+use SilverStripe\Control\HTTPRequest;
 
 /**
  * Description
@@ -19,7 +20,7 @@ use SilverStripe\View\ArrayData;
  */
 class CartController extends PageController
 {
-    public function index()
+    public function index(HTTPRequest $request)
     {
         if ($this->request->isPost() && !empty($this->request->postVar('action'))) {
             $this->{'do_' . $this->request->postVar('action')}();

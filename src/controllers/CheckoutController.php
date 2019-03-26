@@ -20,10 +20,11 @@ use Leochenftw\eCommerce\eCollector\Model\Freight;
 use SilverStripe\Forms\LiteralField;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\Control\HTTPRequest;
 
 class CheckoutController extends PageController
 {
-    public function index()
+    public function index(HTTPRequest $request)
     {
         if ($status =   $this->request->Param('status')) {
             if ($status == 'pay') {
