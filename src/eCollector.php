@@ -38,7 +38,7 @@ class eCollector
             $order      =   Order::create();
         }
 
-        $order->write();
+        $order->UpdateAmountWeight();
 
         return $order;
     }

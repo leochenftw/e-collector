@@ -27,8 +27,6 @@ class DPS
                             <UrlFail>' . Director::absoluteBaseURL() . 'e-collector/dps-complete</UrlFail>
                         </GenerateRequest>';
 
-        // Debugger::inspect($request);
-
         $ch         =   curl_init($endpoint);
         curl_setopt( $ch, CURLOPT_POST, 1);
         curl_setopt( $ch, CURLOPT_POSTFIELDS, $request);

@@ -18,7 +18,7 @@ Leochenftw\eCommerce\eCollector:
     POLi: 'https://poliapi.apac.paywithpoli.com/api/v2/Transaction'
     Paystation: 'https://www.paystation.co.nz/direct/paystation.dll'
     PaystationLookup: 'https://payments.paystation.co.nz/lookup/'
-    DPS : 'https://sec.paymentexpress.com/pxaccess/pxpay.aspx'
+    DPS : 'https://uat.paymentexpress.com/pxaccess/pxpay.aspx'
   GatewaySettings:
     POLi:
         CERT: '/var/www/ca-bundle.crt'
@@ -42,3 +42,11 @@ SilverStripe\Security\Group:
 
 SilverStripe\CMS\Model\SiteTree:
   hide_ancestor: 'Leochenftw\eCommerce\eCollector\Model\Product'
+
+---
+Only:
+  environment: 'live'
+---
+Leochenftw\eCommerce\eCollector:
+  API:
+    DPS : 'https://sec.paymentexpress.com/pxaccess/pxpay.aspx'
