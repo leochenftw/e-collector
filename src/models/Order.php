@@ -35,7 +35,7 @@ class Order extends DataObject
      */
     private static $db = [
         'MerchantReference'     =>  'Varchar(64)',
-        'Status'                =>  'Enum("Pending,Payment Received,Shipped,Cancelled,Refunded,Completed")',
+        'Status'                =>  'Enum("Pending,Invoice Pending,Payment Received,Shipped,Cancelled,Refunded,Completed")',
         'AnonymousCustomer'     =>  'Varchar(128)',
         'TotalAmount'           =>  'Currency',
         'TotalWeight'           =>  'Decimal',
@@ -53,6 +53,7 @@ class Order extends DataObject
         'ShippingCountry'       =>  'Varchar(128)',
         'ShippingPostcode'      =>  'Varchar(128)',
         'ShippingPhone'         =>  'Varchar(128)',
+        'SameBilling'           =>  'Boolean',
         'BillingFirstname'      =>  'Varchar(128)',
         'BillingSurname'        =>  'Varchar(128)',
         'BillingAddress'        =>  'Text',
@@ -116,6 +117,7 @@ class Order extends DataObject
 
     public function populateDefaults()
     {
+        $this->SameBilling  =   true;
         $member                         =   Member::currentUser();
         if (!empty($member) && $member->ClassName == Customer::class) {
             $this->CustomerID           =   $member->ID;
@@ -250,6 +252,8 @@ class Order extends DataObject
     {
         if ($status == 'Success') {
             $this->Status   =   'Payment Received';
+        } elseif ($status == 'Invoice Pending') {
+            $this->Status   =   $status;
         } else {
             $this->Status   =   'Pending';
         }
@@ -263,36 +267,16 @@ class Order extends DataObject
      public function onBeforeWrite()
      {
          parent::onBeforeWrite();
-         if (empty($this->BillingOrganisation)) {
+         if ($this->SameBilling) {
              $this->BillingOrganisation =   $this->ShippingOrganisation;
-         }
-
-         if (empty($this->BillingApartment)) {
-             $this->BillingApartment =   $this->ShippingApartment;
-         }
-
-         if (empty($this->BillingAddress)) {
-             $this->BillingAddress   =   $this->ShippingAddress;
-         }
-
-         if (empty($this->BillingSuburb)) {
-             $this->BillingSuburb    =   $this->ShippingSuburb;
-         }
-
-         if (empty($this->BillingTown)) {
-             $this->BillingTown      =   $this->ShippingTown;
-         }
-
-         if (empty($this->BillingRegion)) {
-             $this->BillingRegion    =   $this->ShippingRegion;
-         }
-
-         if (empty($this->BillingCountry)) {
-             $this->BillingCountry   =   $this->ShippingCountry;
-         }
-
-         if (empty($this->BillingPostcode)) {
-             $this->BillingPostcode  =   $this->ShippingPostcode;
+             $this->BillingApartment    =   $this->ShippingApartment;
+             $this->BillingAddress      =   $this->ShippingAddress;
+             $this->BillingSuburb       =   $this->ShippingSuburb;
+             $this->BillingTown         =   $this->ShippingTown;
+             $this->BillingRegion       =   $this->ShippingRegion;
+             $this->BillingCountry      =   $this->ShippingCountry;
+             $this->BillingPostcode     =   $this->ShippingPostcode;
+             $this->BillingPhone        =   $this->ShippingPhone;
          }
      }
 

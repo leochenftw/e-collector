@@ -35,6 +35,7 @@ Leochenftw\eCommerce\eCollector\Payment\Payment:
     DPS : DPS
     POLi : POLi
     Paystation : Paystation
+    Invoice: Invoice
 
 SilverStripe\Security\Group:
   extensions:
