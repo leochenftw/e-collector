@@ -5,6 +5,7 @@ use SilverStripe\CMS\Controllers\ContentController;
 use Leochenftw\eCommerce\eCollector\Model\Order;
 use SilverStripe\Core\Config\Config;
 use Leochenftw\Util;
+use Leochenftw\Debugger;
 
 class eCollectorController extends ContentController
 {
@@ -12,12 +13,13 @@ class eCollectorController extends ContentController
     {
         $state      =   $result['state'];
         $orderID    =   $result['order_id'];
-        $url        =   [
-                            'url'       =>  $this->get_returning_url($state),
+        $url        =   $this->get_returning_url($state);
+        $queries    =   [
+                            'order_id'  =>  $orderID,
                             'state'     =>  strtolower($state)
                         ];
 
-        $url        =   Util::LinkThis($url, 'order_id', $orderID);
+        $url        .=  ('?' . http_build_query($queries));
 
         return $this->redirect($url);
     }

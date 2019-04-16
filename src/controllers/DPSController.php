@@ -38,9 +38,7 @@ class DPSController extends eCollectorController
 
     protected function handle_postback($data)
     {
-        $result             =   DPS::fetch($data);
-
-        // Debugger::inspect($result);
+        $result =   DPS::fetch($data);
 
         if ($Order = $this->getOrder($result['MerchantReference'])) {
             $payment = $Order->Payments()->filter(['TransacID' => $result['TxnId']])->first();

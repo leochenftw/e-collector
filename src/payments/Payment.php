@@ -139,4 +139,20 @@ class Payment extends DataObject
                 (!empty($this->PayerAccountNumber) ? ( $this->PayerAccountNumber . ', ' . $this->PayerBankName) : 'N/A') :
                 $this->CardNumber;
     }
+
+    public function getData()
+    {
+        return [
+            'id'                =>  $this->ID,
+            'transaction_id'    =>  $this->TransacID,
+            'created'           =>  $this->Created,
+            'status'            =>  $this->Status,
+            'amount'            =>  $this->Amount,
+            'payment_method'    =>  $this->PaymentMethod,
+            'card_type'         =>  $this->CardType,
+            'card_number'       =>  $this->CardNumber,
+            'card_holder'       =>  $this->CardHolder,
+            'card_expiry'       =>  $this->Expiry
+        ];
+    }
 }

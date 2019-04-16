@@ -64,7 +64,6 @@ class CheckoutController extends PageController
     public function init()
     {
         parent::init();
-        $this->Form =   $this->CheckoutForm();
     }
 
     private function CheckoutForm()

@@ -15,6 +15,7 @@ use Leochenftw\eCommerce\eCollector\API\DPS;
 use Leochenftw\eCommerce\eCollector\API\Poli;
 use Leochenftw\eCommerce\eCollector\API\Paystation;
 use Leochenftw\eCommerce\eCollector\Model\Freight;
+use SilverStripe\Control\Cookie;
 
 /**
  * Description
@@ -118,13 +119,18 @@ class Order extends DataObject
     public function populateDefaults()
     {
         $this->SameBilling  =   true;
-        $member                         =   Member::currentUser();
+        $member             =   Member::currentUser();
+        $cookie         =   Cookie::get('eCollectorCookie');
+        if (empty($cookie)) {
+            $cookie =   session_id();
+            Cookie::set('eCollectorCookie', $cookie, $expiry = 30);
+        }
         if (!empty($member) && $member->ClassName == Customer::class) {
             $this->CustomerID           =   $member->ID;
         } elseif (empty($member)) {
-            $this->AnonymousCustomer   =   session_id();
+            $this->AnonymousCustomer   =   $cookie;
         } else {
-            $this->AnonymousCustomer   =   'Admin_' . session_id();
+            $this->AnonymousCustomer   =   'Admin_' . $cookie;
         }
 
         $this->MerchantReference        =   sha1(md5(round(microtime(true) * 1000) . '-' . session_id()));

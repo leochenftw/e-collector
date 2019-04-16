@@ -7,6 +7,7 @@ use Leochenftw\eCommerce\eCollector\Model\Customer;
 use Leochenftw\eCommerce\eCollector\Model\Order;
 use Leochenftw\eCommerce\eCollector\Model\OrderItem;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\Control\Cookie;
 
 class eCollector
 {
@@ -23,15 +24,19 @@ class eCollector
         }
 
         $excluding      =   Config::inst()->get(__CLASS__, 'CartlessProducts');
-
+        $cookie         =   Cookie::get('eCollectorCookie');
+        if (empty($cookie)) {
+            $cookie =   session_id();
+            Cookie::set('eCollectorCookie', $cookie, $expiry = 30);
+        }
         if (!empty($member)) {
             if (!$member->isDefaultAdmin()) {
                 $order  =   $member->Orders()->exclude(['ClassName' => $excluding])->filter(['Status' => 'Pending'])->first();
             } else {
-                $order  =   Order::get()->exclude(['ClassName' => $excluding])->filter(['AnonymousCustomer' => 'Admin_' . session_id(), 'Status' => 'Pending'])->first();
+                $order  =   Order::get()->exclude(['ClassName' => $excluding])->filter(['AnonymousCustomer' => 'Admin_' . $cookie, 'Status' => 'Pending'])->first();
             }
         } else {
-            $order      =   Order::get()->exclude(['ClassName' => $excluding])->filter(['AnonymousCustomer' => session_id(), 'Status' => 'Pending'])->first();
+            $order      =   Order::get()->exclude(['ClassName' => $excluding])->filter(['AnonymousCustomer' => $cookie, 'Status' => 'Pending'])->first();
         }
 
         if (empty($order)) {
