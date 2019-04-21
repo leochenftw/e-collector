@@ -2,6 +2,7 @@
 
 namespace Leochenftw\eCommerce\eCollector\Model;
 use Leochenftw\eCommerce\eCollector;
+use SilverStripe\SiteConfig\SiteConfig;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\TextareaField;
@@ -16,6 +17,10 @@ use Leochenftw\eCommerce\eCollector\API\Poli;
 use Leochenftw\eCommerce\eCollector\API\Paystation;
 use Leochenftw\eCommerce\eCollector\Model\Freight;
 use SilverStripe\Control\Cookie;
+use UncleCheese\BetterButtons\Actions\CustomAction;
+use Konekt\PdfInvoice\InvoicePrinter;
+use SilverStripe\Control\Email\Email;
+use SilverStripe\Control\Director;
 
 /**
  * Description
@@ -25,6 +30,9 @@ use SilverStripe\Control\Cookie;
  */
 class Order extends DataObject
 {
+    private static $better_buttons_actions = [
+        'send_invoice'
+    ];
     /**
      * Defines the database table name
      * @var string
@@ -211,9 +219,144 @@ class Order extends DataObject
 
         $fields->fieldByName('Root.Main.FreightID')->setTitle('Freight Provider');
 
+
         // Debugger::inspect(Paystation::process($this->getTotalAmount(), $this->MerchantReference));
+        return $fields;
+    }
+
+    public function getBetterButtonsActions()
+    {
+        $fields = parent::getBetterButtonsActions();
+
+        if ($this->exists()) {
+            $fields->push(CustomAction::create('send_invoice', 'Send invoice')->setRedirectType(CustomAction::REFRESH));
+        }
 
         return $fields;
+    }
+
+
+    public function send_invoice()
+    {
+        $siteconfig =   SiteConfig::current_site_config();
+        $payment    =   $this->getSuccessPayment();
+
+        $invoice = new InvoicePrinter();
+        if ($siteconfig->StoreLogo()->exists()) {
+            $invoice->setLogo($siteconfig->StoreLogo()->getAbsoluteURL());   //logo image path
+        }
+
+        $invoice->setColor("#000000");      // pdf color scheme
+        $invoice->setType("Sale Invoice");    // Invoice Type
+        $invoice->setReference("Invoice#" . $this->ID);   // Reference
+        $invoice->setDate(date('d/m/Y',time()));   //Billing Date
+        $invoice->setTime(date('h:i:s A',time()));   //Billing Time
+
+        $billing_from   =   [];
+        if (!empty($siteconfig->TradingName)) {
+            $billing_from[] =   $siteconfig->TradingName;
+        }
+
+        if (!empty($siteconfig->StoreLocation)) {
+            $chunks         =   explode("\n", $siteconfig->StoreLocation);
+            $billing_from   =   array_merge($billing_from, $chunks);
+        }
+
+        if (!empty($siteconfig->ContactEmail)) {
+            $billing_from[] =   $siteconfig->ContactEmail . (
+                !empty($siteconfig->ContactNumber) ?
+                (', ' . $siteconfig->ContactNumber) : ''
+            );
+        }
+
+        $billing_to         =   [];
+        $billing_to[]       =   trim((
+            !empty($this->BillingFirstname) ?
+            $this->BillingFirstname : '') . ' ' . (!empty($this->BillingSurname) ? $this->BillingSurname : ''));
+
+        if (!empty($this->BillingOrganisation)) {
+            $billing_to[]   =   $this->BillingOrganisation;
+        }
+
+        if (!empty($this->BillingApartment)) {
+            $billing_to[]   =   $this->BillingApartment;
+        }
+
+        if (!empty($this->BillingAddress)) {
+            $billing_to[]   =   $this->BillingAddress;
+        }
+
+        if (!empty($this->BillingSuburb)) {
+            $billing_to[]   =   $this->BillingSuburb;
+        }
+
+        if (!empty($this->BillingTown)) {
+            $billing_to[]   =   $this->BillingTown . (!empty($this->BillingRegion) ? (', ' . $this->BillingRegion) : '');
+        }
+
+        if (!empty($this->BillingCountry)) {
+            $billing_to[]   =   $this->BillingCountry . (!empty($this->BillingPostcode) ? (', ' . $this->BillingPostcode) : '');
+        }
+
+        $billing_to[]   =   $this->Email . (
+            !empty($this->Phone) ?
+            (', ' . $this->Phone) :
+            (!empty($this->BillingPhone) ?
+            (', ' . $this->BillingPhone) : '')
+        );
+
+        $size           =   count($billing_from) > count($billing_to) ? count($billing_from) : count($billing_to);
+
+        $billing_from   =   array_pad($billing_from, $size, '');
+        $billing_to     =   array_pad($billing_to, $size, '');
+
+        $invoice->setFrom($billing_from);
+        $invoice->setTo($billing_to);
+
+        $this->extend('createInvoiceRows', $invoice);
+
+        if ($payment) {
+            $invoice->addBadge("Payment Received");
+        } else {
+            $invoice->addBadge("Payment Outstanding");
+            $invoice->addTitle("Cheque payment");
+            $invoice->addParagraph("Cheques should be made out to:
+Playmarket Incorporated
+
+and posted to
+
+PO Box 9767
+Wellington 6141
+
+Personal and business cheques will be held for up to 10 business days to ensure payment clears before an order is shipped.
+
+To pay by direct credit either deposit the full amount into our bank account now, or request an invoice in the notes section. Please include a purchase order number in the notes section if you have one.
+
+Bank of New Zealand
+02-0568-0020573-000
+Reference: $this->ID
+
+Electronic payments may take up to 2 business days to clear. Your order will be processed once the money is received.");
+        }
+
+        $invoice->setFooternote(SiteConfig::current_site_config()->Title);
+
+        $str        =   $invoice->render('example1.pdf','S');
+
+        $from       =   Config::inst()->get(Email::class, 'noreply_email');
+        $to         =   $this->Email;
+        $subject    =   $siteconfig->Title . ': order invoice #' . $this->ID ;
+
+        $email      =   new Email($from, $to, $subject);
+        $email->setBody('Hi, <br /><br />Please find your order invoice in the attachment.<br /><br />Kind regards<br />' . $siteconfig->Title . ' team');
+
+        $email->addAttachmentFromData($str, 'Invoice.pdf');
+        $email->send();
+
+        $admin_email    =   new Email($from, 'leochenftw@gmail.com', $siteconfig->Title . ': New order received (#' . $this->ID . ')');
+        $admin_email->setBody('Hi, <br /><br />There is a new order. Please <a target="_blank" href="' . Director::absoluteBaseURL() .  'admin/orders/Leochenftw-eCommerce-eCollector-Model-Order/EditForm/field/Leochenftw-eCommerce-eCollector-Model-Order/item/' . $this->ID . '/edit' . '">click here</a> to view the details. <br /><br />' . $siteconfig->TradingName);
+
+        $admin_email->send();
     }
 
     public function ItemCount()
@@ -258,8 +401,10 @@ class Order extends DataObject
     {
         if ($status == 'Success') {
             $this->Status   =   'Payment Received';
+            $this->send_invoice();
         } elseif ($status == 'Invoice Pending') {
             $this->Status   =   $status;
+            $this->send_invoice();
         } else {
             $this->Status   =   'Pending';
         }

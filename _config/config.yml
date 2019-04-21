@@ -44,6 +44,10 @@ SilverStripe\Security\Group:
 SilverStripe\CMS\Model\SiteTree:
   hide_ancestor: 'Leochenftw\eCommerce\eCollector\Model\Product'
 
+SilverStripe\SiteConfig\SiteConfig:
+  extensions:
+    - Leochenftw\eCommerce\eCollector\Extensions\SiteconfigExtension
+
 ---
 Only:
   environment: 'live'

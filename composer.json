@@ -12,7 +12,8 @@
         }
     ],
     "require": {
-        "silverstripe/framework": "^4.0"
+        "silverstripe/framework": "^4.0",
+        "konekt/pdf-invoice": "^1.3"
     },
     "extra": {
         "expose": [
