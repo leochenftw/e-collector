@@ -24,21 +24,24 @@ class PaystationController extends eCollectorController
         // Injector::inst()->get(LoggerInterface::class)->info('Paystation:: post back');
         // it appears PS postback some crap that isn't very intuitive - need more research
 
-        $xml        =   simplexml_load_string($request->getBody());
-        $json       =   json_encode($xml);
+        if ($xml =   simplexml_load_string($request->getBody())) {
+            $json   =   json_encode($xml);
 
-        Injector::inst()->get(LoggerInterface::class)->info($json);
+            Injector::inst()->get(LoggerInterface::class)->info($json);
 
-        $token      =   $xml->ti;
+            $token  =   $xml->ti;
 
-        if (empty($token)) {
-            Injector::inst()->get(LoggerInterface::class)->info('ti no found');
-            return $this->httpError(400, 'transaction id is missing');
+            if (empty($token)) {
+                Injector::inst()->get(LoggerInterface::class)->info('ti no found');
+                return $this->httpError(400, 'transaction id is missing');
+            }
+
+            // Injector::inst()->get(LoggerInterface::class)->info('ti found, proceed');
+
+            $this->handle_postback($xml);
         }
 
-        // Injector::inst()->get(LoggerInterface::class)->info('ti found, proceed');
-
-        $this->handle_postback($xml);
+        return $this->httpError(400, 'XML?');
     }
 
     protected function handle_postback($result)
