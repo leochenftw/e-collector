@@ -350,8 +350,9 @@ Electronic payments may take up to 2 business days to clear. Your order will be 
     public function download_invoice()
     {
         $invoice    =   $this->prep_pdf();
+        $siteconfig =   SiteConfig::current_site_config();
 
-        return  $invoice->render('Zeffer Invoice #' . $this->ID . '.pdf', 'D');
+        return  $invoice->render($siteconfig->TradingName . ' Invoice #' . $this->ID . '.pdf', 'D');
     }
 
     public function send_invoice()
@@ -359,7 +360,7 @@ Electronic payments may take up to 2 business days to clear. Your order will be 
         $siteconfig =   SiteConfig::current_site_config();
         $invoice    =   $this->prep_pdf();
 
-        $str        =   $invoice->render('Zeffer Invoice #' . $this->ID . '.pdf','S');
+        $str        =   $invoice->render($siteconfig->TradingName . ' Invoice #' . $this->ID . '.pdf','S');
 
         $from       =   Config::inst()->get(Email::class, 'noreply_email');
         $to         =   $this->Email;
