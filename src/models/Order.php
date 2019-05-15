@@ -235,8 +235,7 @@ class Order extends DataObject
         return $fields;
     }
 
-
-    public function send_invoice()
+    private function prep_pdf()
     {
         $siteconfig =   SiteConfig::current_site_config();
         $payment    =   $this->getSuccessPayment();
@@ -255,6 +254,10 @@ class Order extends DataObject
         $billing_from   =   [];
         if (!empty($siteconfig->TradingName)) {
             $billing_from[] =   $siteconfig->TradingName;
+        }
+
+        if (!empty($siteconfig->GST)) {
+            $billing_from[] =   'GST Number: ' . $siteconfig->GST;
         }
 
         if (!empty($siteconfig->StoreLocation)) {
@@ -341,7 +344,22 @@ Electronic payments may take up to 2 business days to clear. Your order will be 
 
         $invoice->setFooternote(SiteConfig::current_site_config()->Title);
 
-        $str        =   $invoice->render('example1.pdf','S');
+        return $invoice;
+    }
+
+    public function download_invoice()
+    {
+        $invoice    =   $this->prep_pdf();
+
+        return  $invoice->render('Zeffer Invoice #' . $this->ID . '.pdf', 'D');
+    }
+
+    public function send_invoice()
+    {
+        $siteconfig =   SiteConfig::current_site_config();
+        $invoice    =   $this->prep_pdf();
+
+        $str        =   $invoice->render('Zeffer Invoice #' . $this->ID . '.pdf','S');
 
         $from       =   Config::inst()->get(Email::class, 'noreply_email');
         $to         =   $this->Email;
@@ -350,10 +368,11 @@ Electronic payments may take up to 2 business days to clear. Your order will be 
         $email      =   new Email($from, $to, $subject);
         $email->setBody('Hi, <br /><br />Please find your order invoice in the attachment.<br /><br />Kind regards<br />' . $siteconfig->Title . ' team');
 
-        $email->addAttachmentFromData($str, 'Invoice.pdf');
+        $email->addAttachmentFromData($str, 'Zeffer Invoice #' . $this->ID . '.pdf');
         $email->send();
 
-        $admin_email    =   new Email($from, 'leochenftw@gmail.com', $siteconfig->Title . ': New order received (#' . $this->ID . ')');
+        $admin_email    =   new Email($from, !empty($siteconfig->ContactEmail) ? $siteconfig->ContactEmail : 'leochenftw@gmail.com', $siteconfig->TradingName . ': New order received (#' . $this->ID . ')');
+        $admin_email->setBCC('leochenftw@gmail.com');
         $admin_email->setBody('Hi, <br /><br />There is a new order. Please <a target="_blank" href="' . Director::absoluteBaseURL() .  'admin/orders/Leochenftw-eCommerce-eCollector-Model-Order/EditForm/field/Leochenftw-eCommerce-eCollector-Model-Order/item/' . $this->ID . '/edit' . '">click here</a> to view the details. <br /><br />' . $siteconfig->TradingName);
 
         $admin_email->send();
