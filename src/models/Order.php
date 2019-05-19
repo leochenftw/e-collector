@@ -186,7 +186,7 @@ class Order extends DataObject
         $fields->addFieldsToTab(
             'Root.Shipping',
             [
-                TextField::create('ShippingFirstname', 'Firstname'),
+                TextField::create('ShippingFirstname', 'First Name'),
                 TextField::create('ShippingSurname', 'Surname'),
                 TextField::create('ShippingOrganisation', 'Organisation'),
                 TextField::create('ShippingApartment', 'Apartment'),
@@ -203,7 +203,7 @@ class Order extends DataObject
         $fields->addFieldsToTab(
             'Root.Billing',
             [
-                TextField::create('BillingFirstname', 'Firstname'),
+                TextField::create('BillingFirstname', 'First Name'),
                 TextField::create('BillingSurname', 'Surname'),
                 TextField::create('BillingOrganisation', 'Organisation'),
                 TextField::create('BillingApartment', 'Apartment'),
@@ -323,24 +323,9 @@ class Order extends DataObject
         } else {
             $invoice->addBadge("Payment Outstanding");
             $invoice->addTitle("Cheque payment");
-            $invoice->addParagraph("Cheques should be made out to:
-Playmarket Incorporated
-
-and posted to
-
-PO Box 9767
-Wellington 6141
-
-Personal and business cheques will be held for up to 10 business days to ensure payment clears before an order is shipped.
-
-To pay by direct credit either deposit the full amount into our bank account now, or request an invoice in the notes section. Please include a purchase order number in the notes section if you have one.
-
-Bank of New Zealand
-02-0568-0020573-000
-Reference: $this->ID
-
-Electronic payments may take up to 2 business days to clear. Your order will be processed once the money is received.");
         }
+
+        $this->extend('createInvoiceParagraph', $invoice);
 
         $invoice->setFooternote(SiteConfig::current_site_config()->Title);
 
@@ -369,7 +354,7 @@ Electronic payments may take up to 2 business days to clear. Your order will be 
         $email      =   new Email($from, $to, $subject);
         $email->setBody('Hi, <br /><br />Please find your order invoice in the attachment.<br /><br />Kind regards<br />' . $siteconfig->Title . ' team');
 
-        $email->addAttachmentFromData($str, 'Zeffer Invoice #' . $this->ID . '.pdf');
+        $email->addAttachmentFromData($str, $siteconfig->TradingName . ' Invoice #' . $this->ID . '.pdf');
         $email->send();
 
         $admin_email    =   new Email($from, !empty($siteconfig->ContactEmail) ? $siteconfig->ContactEmail : 'leochenftw@gmail.com', $siteconfig->TradingName . ': New order received (#' . $this->ID . ')');
