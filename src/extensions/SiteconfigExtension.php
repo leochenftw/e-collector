@@ -21,7 +21,8 @@ class SiteconfigExtension extends DataExtension
         'GST'           =>  'Varchar(32)',
         'StoreLocation' =>  'Text',
         'ContactNumber' =>  'Varchar(16)',
-        'ContactEmail'  =>  'Varchar(256)'
+        'ContactEmail'  =>  'Varchar(256)',
+        'OrderEmail'    =>  'Text'
     ];
     /**
      * Has_one relationship
@@ -56,7 +57,8 @@ class SiteconfigExtension extends DataExtension
                 TextField::create('TradingName'),
                 TextField::create('GST'),
                 TextField::create('ContactNumber', 'Store Phone Number'),
-                EmailField::create('ContactEmail', 'Store Email'),
+                EmailField::create('ContactEmail', 'Store Contact Email')->setDescription('If "Order Recipient Emails" field is empty, order will be sent to this email address'),
+                TextField::create('OrderEmail', 'Order Recipient Emails')->setDescription('use "," to separate multiple emails'),
                 TextareaField::create('StoreLocation', 'Store Location')
             ]
         );

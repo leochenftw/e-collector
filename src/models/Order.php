@@ -17,7 +17,6 @@ use Leochenftw\eCommerce\eCollector\API\Poli;
 use Leochenftw\eCommerce\eCollector\API\Paystation;
 use Leochenftw\eCommerce\eCollector\Model\Freight;
 use SilverStripe\Control\Cookie;
-use UncleCheese\BetterButtons\Actions\CustomAction;
 use Konekt\PdfInvoice\InvoicePrinter;
 use SilverStripe\Control\Email\Email;
 use SilverStripe\Control\Director;
@@ -31,7 +30,8 @@ use SilverStripe\Control\Director;
 class Order extends DataObject
 {
     private static $better_buttons_actions = [
-        'send_invoice'
+        'send_invoice',
+        'send_tracking'
     ];
     /**
      * Defines the database table name
@@ -74,7 +74,8 @@ class Order extends DataObject
         'BillingCountry'        =>  'Varchar(128)',
         'BillingPostcode'       =>  'Varchar(128)',
         'BillingPhone'          =>  'Varchar(128)',
-        'Comment'               =>  'Text'
+        'Comment'               =>  'Text',
+        'TrackingNumber'        =>  'Varchar(128)'
     ];
 
     private static $indexes = [
@@ -217,21 +218,20 @@ class Order extends DataObject
             ]
         );
 
-        $fields->fieldByName('Root.Main.FreightID')->setTitle('Freight Provider');
+        $fields->addFieldsToTab(
+            'Root.Freight & Tracking',
+            [
+                $fields->fieldByName('Root.Main.FreightID')->setTitle('Freight Provider'),
+                $tracking_field =   TextField::create('TrackingNumber', 'Tracking Number')
+            ]
+        );
+
+        if (empty($this->TrackingNumber) || empty($this->FreightID)) {
+            $tracking_field->setDescription('To send tracking number to the customer, please choose a freight provide, fill the tracking number, and then Apply Changes. <br />You will see the button after page refresh');
+        }
 
 
         // Debugger::inspect(Paystation::process($this->getTotalAmount(), $this->MerchantReference));
-        return $fields;
-    }
-
-    public function getBetterButtonsActions()
-    {
-        $fields = parent::getBetterButtonsActions();
-
-        if ($this->exists()) {
-            $fields->push(CustomAction::create('send_invoice', 'Send invoice')->setRedirectType(CustomAction::REFRESH));
-        }
-
         return $fields;
     }
 
@@ -344,24 +344,36 @@ class Order extends DataObject
     {
         $siteconfig =   SiteConfig::current_site_config();
         $invoice    =   $this->prep_pdf();
-
         $str        =   $invoice->render($siteconfig->TradingName . ' Invoice #' . $this->ID . '.pdf','S');
-
         $from       =   Config::inst()->get(Email::class, 'noreply_email');
         $to         =   $this->Email;
-        $subject    =   $siteconfig->Title . ': order invoice #' . $this->ID ;
 
-        $email      =   new Email($from, $to, $subject);
-        $email->setBody('Hi, <br /><br />Please find your order invoice in the attachment.<br /><br />Kind regards<br />' . $siteconfig->Title . ' team');
+        $customer_sent_flag =   ['sent' => false];
+        $this->extend('SendCustomerEmail', $from, $to, $str, $customer_sent_flag);
 
-        $email->addAttachmentFromData($str, $siteconfig->TradingName . ' Invoice #' . $this->ID . '.pdf');
-        $email->send();
+        if (!$customer_sent_flag['sent']) {
+            $subject    =   $siteconfig->Title . ': order invoice #' . $this->ID;
+            $email      =   new Email($from, $to, $subject);
+            $email->setBody('Hi, <br /><br />Please find your order invoice in the attachment.<br /><br />Kind regards<br />' . $siteconfig->Title . ' team');
 
-        $admin_email    =   new Email($from, !empty($siteconfig->ContactEmail) ? $siteconfig->ContactEmail : 'leochenftw@gmail.com', $siteconfig->TradingName . ': New order received (#' . $this->ID . ')');
-        $admin_email->setBCC('leochenftw@gmail.com');
-        $admin_email->setBody('Hi, <br /><br />There is a new order. Please <a target="_blank" href="' . Director::absoluteBaseURL() .  'admin/orders/Leochenftw-eCommerce-eCollector-Model-Order/EditForm/field/Leochenftw-eCommerce-eCollector-Model-Order/item/' . $this->ID . '/edit' . '">click here</a> to view the details. <br /><br />' . $siteconfig->TradingName);
+            $email->addAttachmentFromData($str, $siteconfig->TradingName . ' Invoice #' . $this->ID . '.pdf');
+            $email->send();
+        }
 
-        $admin_email->send();
+        // -----
+
+        $admin_sent_flag    =   ['sent' => false];
+        $to_admin           =   !empty($siteconfig->OrderEmail) ? explode(',', $siteconfig->OrderEmail) : $siteconfig->ContactEmail;
+        if (!empty($to_admin)) {
+            $this->extend('SendAdminEmail', $from, $to_admin, $str, $admin_sent_flag);
+            if (!$admin_sent_flag['sent']) {
+                $admin_email    =   new Email($from, $to_admin, $siteconfig->TradingName . ': New order received (#' . $this->ID . ')');
+                $admin_email->setBCC('leochenftw@gmail.com');
+                $admin_email->setBody('Hi, <br /><br />There is a new order. Please <a target="_blank" href="' . Director::absoluteBaseURL() .  'admin/orders/Leochenftw-eCommerce-eCollector-Model-Order/EditForm/field/Leochenftw-eCommerce-eCollector-Model-Order/item/' . $this->ID . '/edit' . '">click here</a> to view the details. <br /><br />' . $siteconfig->TradingName);
+
+                $admin_email->send();
+            }
+        }
     }
 
     public function ItemCount()
@@ -413,6 +425,8 @@ class Order extends DataObject
         } else {
             $this->Status   =   'Pending';
         }
+
+        $this->extend('doPaymentupdateActions', $this);
 
         $this->write();
     }
@@ -466,5 +480,22 @@ class Order extends DataObject
          }
 
          return array_values($list);
+     }
+
+     public function send_tracking()
+     {
+         $siteconfig =   SiteConfig::current_site_config();
+         $from       =   Config::inst()->get(Email::class, 'noreply_email');
+         $to         =   $this->Email;
+
+         $customer_sent_flag =   ['sent' => false];
+         $this->extend('SendTracking', $from, $to, $customer_sent_flag);
+
+         if (!$customer_sent_flag['sent']) {
+             $subject    =   $siteconfig->Title . ': order #' . $this->ID . ' has been dispatched';
+             $email      =   new Email($from, $to, $subject);
+             $email->setBody('Hi, <br /><br />The trakcing number for your order #' . $this->ID . ' is: ' . $this->TrackingNumber . '.<br /><br />Kind regards<br />' . $siteconfig->Title . ' team');
+             $email->send();
+         }
      }
 }

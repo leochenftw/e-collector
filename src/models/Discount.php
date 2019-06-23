@@ -1,7 +1,9 @@
 <?php
 
 namespace Leochenftw\eCommerce\eCollector\Model;
+use Leochenftw\Debugger;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\LiteralField;
 use SilverStripe\Security\Group;
@@ -39,14 +41,26 @@ class Discount extends DataObject
         'DiscountBy'    =>  'Enum("ByPercentage,ByValue")',
         'DiscountRate'  =>  'Decimal',
         'Type'          =>  'Enum("Member Type,Coupon")',
-        'CouponCode'    =>  'Varchar(128)'
+        'CouponCode'    =>  'Varchar(128)',
+        'Used'          =>  'Boolean'
     ];
 
     private static $indexes = [
         'CouponCode' => [
             'type'      =>  'unique',
             'columns'   =>  ['CouponCode'],
-        ],
+        ]
+    ];
+
+    /**
+     * Defines summary fields commonly used in table columns
+     * as a quick overview of the data for this dataobject
+     * @var array
+     */
+    private static $summary_fields = [
+        'Title',
+        'CouponCode',
+        'Used'
     ];
 
     /**
@@ -60,6 +74,7 @@ class Discount extends DataObject
 
     public function populateDefaults()
     {
+        $this->Type         =   'Coupon';
         $this->CouponCode   =   strtoupper(substr(sha1(time()), 0, 8));
     }
 
@@ -76,8 +91,10 @@ class Discount extends DataObject
         ]);
 
         $fields->fieldByName('Root.Main.DiscountRate')->setDescription('If "Discount By" is set to "By Percentage", it will be x% off; if set to "By Value", it will be $x off.');
-
-        $fields->fieldByName('Root.Main.Type')->setEmptyString('- select one -');
+        $type   =   $fields->fieldByName('Root.Main.Type');
+        if ($type) {
+            $type->setEmptyString('- select one -');
+        }
 
         if ($this->Type == 'Coupon') {
             $fields->addFieldToTab(
@@ -97,6 +114,18 @@ class Discount extends DataObject
             );
         }
 
+        $fields->addFieldToTab(
+            'Root.Main',
+            $fields->fieldByName('Root.Main.Used')
+        );
+
+        $fields->addFieldToTab(
+            'Root.Main',
+            TextField::create(
+                'NumCopies', 'Create another "n" copies of promotion coupon.'
+            )->setDescription('Leave blank if you only wish to create one')
+        );
+
         return $fields;
     }
 
@@ -111,11 +140,41 @@ class Discount extends DataObject
 
     public function getData()
     {
+        if (!$this->exists()) return null;
         return [
             'id'    =>  $this->ID,
             'title' =>  $this->Title,
             'by'    =>  $this->DiscountBy == 'ByPercentage' ? '%' : '-',
-            'rate'  =>  (float) $this->DiscountRate
+            'rate'  =>  (float) $this->DiscountRate,
+            'code'  =>  $this->CouponCode
         ];
+    }
+
+    public static function check_valid($promo_code)
+    {
+        if ($coupon = Discount::get()->filter(['CouponCode' => $promo_code, 'Used' => false])->first()) {
+            return $coupon->getData();
+        }
+
+        return null;
+    }
+
+    /**
+     * Event handler called after writing to the database.
+     */
+    public function onAfterWrite()
+    {
+        parent::onAfterWrite();
+        if (!empty($this->record['NumCopies'])) {
+            $n  =   $this->record['NumCopies'];
+            for ($i = 0; $i < $n; $i++) {
+                $coupon                 =   Discount::create();
+                $coupon->Title          =   $this->Title;
+                $coupon->DiscountBy     =   $this->DiscountBy;
+                $coupon->DiscountRate   =   $this->DiscountRate;
+                $coupon->CouponCode     =   strtoupper(substr(sha1(rand()), 0, 8));
+                $coupon->write();
+            }
+        }
     }
 }

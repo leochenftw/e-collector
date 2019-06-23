@@ -48,6 +48,9 @@ SilverStripe\SiteConfig\SiteConfig:
   extensions:
     - Leochenftw\eCommerce\eCollector\Extensions\SiteconfigExtension
 
+SilverStripe\Forms\GridField\GridFieldDetailForm_ItemRequest:
+  extensions:
+    - Leochenftw\eCommerce\eCollector\Extensions\CustomButtonWorkAround
 ---
 Only:
   environment: 'live'

@@ -22,6 +22,7 @@ class Freight extends DataObject
     private static $db = [
         'Title'                 =>  'Varchar(128)',
         'Website'               =>  'Varchar(1024)',
+        'TrackingPage'          =>  'Varchar(1024)',
         'MeasurementUnit'       =>  'Enum("KG,Unit")',
         'BasePrice'             =>  'Currency',
         'AfterX'                =>  'Decimal',
@@ -57,6 +58,10 @@ class Freight extends DataObject
 
         if (!empty($this->Website) && strpos($this->Website, 'http://') !== 0 && strpos($this->Website, 'https://') !== 0) {
             $result->addError('The website URL that you entered is not valid. Please include http:// or https:// at the beginning.');
+        }
+
+        if (!empty($this->TrackingPage) && strpos($this->TrackingPage, 'http://') !== 0 && strpos($this->TrackingPage, 'https://') !== 0) {
+            $result->addError('The tracking page URL that you entered is not valid. Please include http:// or https:// at the beginning.');
         }
 
         return $result;
