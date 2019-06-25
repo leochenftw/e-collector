@@ -31,7 +31,11 @@ class eCollector
         }
         if (!empty($member)) {
             if (!$member->isDefaultAdmin()) {
-                $order  =   $member->Orders()->exclude(['ClassName' => $excluding])->filter(['Status' => 'Pending'])->first();
+                if ($member->hasMethod('Orders')) {
+                    $order  =   $member->Orders()->exclude(['ClassName' => $excluding])->filter(['Status' => 'Pending'])->first();
+                } else {
+                    $order      =   Order::get()->exclude(['ClassName' => $excluding])->filter(['AnonymousCustomer' => $cookie, 'Status' => 'Pending'])->first();
+                }
             } else {
                 $order  =   Order::get()->exclude(['ClassName' => $excluding])->filter(['AnonymousCustomer' => 'Admin_' . $cookie, 'Status' => 'Pending'])->first();
             }
@@ -54,6 +58,6 @@ class eCollector
             return true;
         }
 
-        return $member->ClassName == Customer::class || $member->isDefaultAdmin();
+        return $member->ClassName == Customer::class || $member->inGroup('administrators');
     }
 }
