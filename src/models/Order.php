@@ -20,6 +20,7 @@ use SilverStripe\Control\Cookie;
 use Konekt\PdfInvoice\InvoicePrinter;
 use SilverStripe\Control\Email\Email;
 use SilverStripe\Control\Director;
+use Leochenftw\Grid;
 
 /**
  * Description
@@ -29,10 +30,6 @@ use SilverStripe\Control\Director;
  */
 class Order extends DataObject
 {
-    private static $better_buttons_actions = [
-        'send_invoice',
-        'send_tracking'
-    ];
     /**
      * Defines the database table name
      * @var string
@@ -179,8 +176,8 @@ class Order extends DataObject
             ]);
 
             $fields->addFieldToTab(
-                'Root.Main',
-                $items
+                'Root.OrderItems',
+                Grid::make('Items', 'Order Items', $this->Items(), false, 'GridFieldConfig_RecordViewer')
             );
         }
 
@@ -230,8 +227,9 @@ class Order extends DataObject
             $tracking_field->setDescription('To send tracking number to the customer, please choose a freight provide, fill the tracking number, and then Apply Changes. <br />You will see the button after page refresh');
         }
 
+        $frozen =   $fields->fieldByName('Root.Main.Status')->performReadonlyTransformation();
+        $fields->replaceField('Status', $frozen);
 
-        // Debugger::inspect(Paystation::process($this->getTotalAmount(), $this->MerchantReference));
         return $fields;
     }
 
@@ -484,6 +482,11 @@ class Order extends DataObject
 
      public function send_tracking()
      {
+         if ($this->Status == 'Payment Received') {
+             $this->Status  =   'Shipped';
+             $this->write();
+         }
+
          $siteconfig =   SiteConfig::current_site_config();
          $from       =   Config::inst()->get(Email::class, 'noreply_email');
          $to         =   $this->Email;
@@ -497,5 +500,15 @@ class Order extends DataObject
              $email->setBody('Hi, <br /><br />The trakcing number for your order #' . $this->ID . ' is: ' . $this->TrackingNumber . '.<br /><br />Kind regards<br />' . $siteconfig->Title . ' team');
              $email->send();
          }
+     }
+
+     public function refund()
+     {
+         if ($this->Status == 'Payment Received') {
+             $this->Status  =   'Refunded';
+             $this->write();
+         }
+
+         $this->extend('doRefund');
      }
 }

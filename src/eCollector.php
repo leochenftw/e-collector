@@ -30,12 +30,8 @@ class eCollector
             Cookie::set('eCollectorCookie', $cookie, $expiry = 30);
         }
         if (!empty($member)) {
-            if (!$member->isDefaultAdmin()) {
-                if ($member->hasMethod('Orders')) {
-                    $order  =   $member->Orders()->exclude(['ClassName' => $excluding])->filter(['Status' => 'Pending'])->first();
-                } else {
-                    $order      =   Order::get()->exclude(['ClassName' => $excluding])->filter(['AnonymousCustomer' => $cookie, 'Status' => 'Pending'])->first();
-                }
+            if (!$member->inGroup('administrators')) {
+                $order  =   $member->Orders()->exclude(['ClassName' => $excluding])->filter(['Status' => 'Pending'])->first();
             } else {
                 $order  =   Order::get()->exclude(['ClassName' => $excluding])->filter(['AnonymousCustomer' => 'Admin_' . $cookie, 'Status' => 'Pending'])->first();
             }
