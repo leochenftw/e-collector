@@ -30,6 +30,7 @@ class CheckoutController extends PageController
             if ($status == 'pay') {
                 return $this->doPay();
             } else {
+                return $this->redirect('/cart/checkout/' . $this->request->Param('status') . '?order_id=' . $this->request->getVar('order_id') . '&state=' . $this->request->getVar('state'));
                 return $this->customise($this->displayComplete())->renderWith(['CheckoutComplete', 'Page']);
             }
         }

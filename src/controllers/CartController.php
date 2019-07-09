@@ -2,6 +2,7 @@
 
 namespace Leochenftw\eCommerce\eCollector\Controller;
 use PageController;
+use SilverStripe\SiteConfig\SiteConfig;
 use Leochenftw\eCommerce\eCollector;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\FormAction;
@@ -55,7 +56,18 @@ class CartController extends PageController
 
     public function Title()
     {
-        return 'Cart';
+        $URIs   =   explode('/', ltrim($_SERVER['REQUEST_URI'], '/'));
+        if (count($URIs) > 2) {
+            $third  =   $URIs[count($URIs) - 1];
+            $third  =   explode('?', $third)[0];
+            return 'Payment ' . $third . ($third == 'cancel' ? 'led' : '');
+        } elseif (count($URIs) > 1) {
+            $second =   $URIs[count($URIs) - 1];
+            $second =   explode('?', $second)[0];
+            return ucwords($second);
+        }
+
+        return 'Cart' . ' | ' . SiteConfig::current_site_config()->Title;
     }
 
     public function Link($action = NULL)

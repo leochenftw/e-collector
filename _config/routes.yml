@@ -7,5 +7,5 @@ SilverStripe\Control\Director:
     'e-collector/poli-complete': 'Leochenftw\eCommerce\eCollector\Controller\PoliController'
     'e-collector/paystation-complete': 'Leochenftw\eCommerce\eCollector\Controller\PaystationController'
     'e-collector/dps-complete': 'Leochenftw\eCommerce\eCollector\Controller\DPSController'
-    cart: Leochenftw\eCommerce\eCollector\Controller\CartController
+    cart/$second/$third: Leochenftw\eCommerce\eCollector\Controller\CartController
     checkout/$status: Leochenftw\eCommerce\eCollector\Controller\CheckoutController

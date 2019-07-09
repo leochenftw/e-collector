@@ -38,7 +38,7 @@ class OrderAdmin extends ModelAdmin
     {
         $list   =   parent::getList();
 
-        return $list->filter(['ClassName' => Order::class]);
+        return $list->filter(['ClassName' => Order::class])->exclude(['Status' => 'Pending']);
     }
 
 }
