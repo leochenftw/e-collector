@@ -235,7 +235,7 @@ class Order extends DataObject
         return $fields;
     }
 
-    private function prep_pdf()
+    protected function prep_pdf()
     {
         $siteconfig =   SiteConfig::current_site_config();
         $payment    =   $this->getSuccessPayment();
