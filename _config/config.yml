@@ -26,7 +26,6 @@ Leochenftw\eCommerce\eCollector:
         paystation: '_empty'
         pstn_gi: 'PAYSTATION'
         pstn_nr: 't'
-        pstn_tm: 't'
   AdditionalSettings:
     Paystation:
       QuickMode: 1
@@ -59,6 +58,16 @@ Leochenftw\eCommerce\eCollector\Model\Order:
     refund          :   true
     send_tracking   :   true
     debit_cleared   :   true
+
+---
+Only:
+  environment: 'dev'
+---
+Leochenftw\eCommerce\eCollector:
+  GatewaySettings:
+    Paystation:
+      pstn_tm: 't'
+
 ---
 Only:
   environment: 'live'
