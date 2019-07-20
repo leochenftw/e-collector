@@ -36,6 +36,7 @@ Leochenftw\eCommerce\eCollector\Payment\Payment:
     POLi : POLi
     Paystation : Paystation
     Invoice: Invoice
+    DirectDebit: Direct Debit
 
 SilverStripe\Security\Group:
   extensions:
@@ -51,6 +52,13 @@ SilverStripe\SiteConfig\SiteConfig:
 SilverStripe\Forms\GridField\GridFieldDetailForm_ItemRequest:
   extensions:
     - Leochenftw\eCommerce\eCollector\Extensions\CustomButtonWorkAround
+Leochenftw\eCommerce\eCollector\Model\Order:
+  default_buttons:
+    send_invoice    :   true
+    cheque_cleared  :   true
+    refund          :   true
+    send_tracking   :   true
+    debit_cleared   :   true
 ---
 Only:
   environment: 'live'

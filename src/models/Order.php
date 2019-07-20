@@ -41,7 +41,7 @@ class Order extends DataObject
      */
     private static $db = [
         'MerchantReference'     =>  'Varchar(64)',
-        'Status'                =>  'Enum("Pending,Invoice Pending,Payment Received,Shipped,Cancelled,Refunded,Completed")',
+        'Status'                =>  'Enum("Pending,Invoice Pending,Debit Pending,Payment Received,Shipped,Cancelled,Refunded,Completed")',
         'AnonymousCustomer'     =>  'Varchar(128)',
         'TotalAmount'           =>  'Currency',
         'TotalWeight'           =>  'Decimal',
@@ -417,7 +417,7 @@ class Order extends DataObject
         if ($status == 'Success') {
             $this->Status   =   'Payment Received';
             $this->send_invoice();
-        } elseif ($status == 'Invoice Pending') {
+        } elseif ($status == 'Invoice Pending' || $status == 'Debit Pending') {
             $this->Status   =   $status;
             $this->send_invoice();
         } else {
@@ -510,5 +510,27 @@ class Order extends DataObject
          }
 
          $this->extend('doRefund');
+     }
+
+     public function cheque_cleared()
+     {
+         if ($this->exists() && $this->Payments()->exists()) {
+            $payment            =   $this->Payments()->filter(['Status' => 'Invoice Pending'])->first();
+            $payment->Status    =   'Success';
+            $payment->write();
+         }
+
+         $this->onPaymentUpdate('Success');
+     }
+
+     public function debit_cleared()
+     {
+         if ($this->exists() && $this->Payments()->exists()) {
+            $payment            =   $this->Payments()->filter(['Status' => 'Debit Pending'])->first();
+            $payment->Status    =   'Success';
+            $payment->write();
+         }
+
+         $this->onPaymentUpdate('Success');
      }
 }

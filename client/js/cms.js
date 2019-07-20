@@ -2,7 +2,7 @@
 {
     $.entwine('ss', function($)
     {
-        $('.btn-send-invoice, .btn-refund, .btn-send-tracking').entwine(
+        $('.btn-send-invoice, .btn-refund, .btn-send-tracking, .btn-cheque-cleared').entwine(
         {
             // onmatch: function(e)
             // {

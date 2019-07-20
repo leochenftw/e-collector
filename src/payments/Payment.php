@@ -46,7 +46,7 @@ class Payment extends DataObject
         'CardHolder'            =>  'Varchar(128)',
         'Expiry'                =>  'Varchar(8)',
         'TransacID'             =>  'Varchar(128)',
-        'Status'                =>  "Enum('Incomplete,Success,Failed,Pending,Invoice Pending,Cancelled,CardSavedOnly','Incomplete')",
+        'Status'                =>  "Enum('Incomplete,Success,Failed,Pending,Invoice Pending,Debit Pending,Cancelled,CardSavedOnly','Incomplete')",
         'Amount'                =>  'Currency',
         'Message'               =>  'Text',
         'IP'                    =>  'Varchar'
