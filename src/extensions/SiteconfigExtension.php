@@ -2,6 +2,7 @@
 
 namespace Leochenftw\eCommerce\eCollector\Extensions;
 
+use Dynamic\CountryDropdownField\Fields\CountryDropdownField;
 use SilverStripe\Forms\EmailField;
 use SilverStripe\Assets\Image;
 use SilverStripe\AssetAdmin\Forms\UploadField;
@@ -9,6 +10,7 @@ use SilverStripe\Forms\TextareaField;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\ORM\DataExtension;
+use Leochenftw\Debugger;
 
 class SiteconfigExtension extends DataExtension
 {
@@ -20,6 +22,7 @@ class SiteconfigExtension extends DataExtension
         'TradingName'   =>  'Varchar(128)',
         'GST'           =>  'Varchar(32)',
         'StoreLocation' =>  'Text',
+        'StoreCountry'  =>  'Varchar(8)',
         'ContactNumber' =>  'Varchar(16)',
         'ContactEmail'  =>  'Varchar(256)',
         'OrderEmail'    =>  'Text'
@@ -59,7 +62,8 @@ class SiteconfigExtension extends DataExtension
                 TextField::create('ContactNumber', 'Store Phone Number'),
                 EmailField::create('ContactEmail', 'Store Contact Email')->setDescription('If "Order Recipient Emails" field is empty, order will be sent to this email address'),
                 TextField::create('OrderEmail', 'Order Recipient Emails')->setDescription('use "," to separate multiple emails'),
-                TextareaField::create('StoreLocation', 'Store Location')
+                TextareaField::create('StoreLocation', 'Store Location'),
+                CountryDropdownField::create('StoreCountry')->setEmptyString('- select one -')
             ]
         );
         return $fields;
