@@ -59,6 +59,69 @@ Leochenftw\eCommerce\eCollector\Model\Order:
     send_tracking   :   true
     debit_cleared   :   true
 
+Leochenftw\eCommerce\eCollector\Model\Freight:
+  allowed_countries:
+    Domestic:
+      nz: New Zealand
+    Zone A:
+      au: Australia
+    Zone B:
+      ck: Cook Islands
+      fj: Fiji
+      nc: New Caledonia
+      ws: Samoa
+      to: Tonga
+      vu: Vanuatu
+    Zone C:
+      kh: Cambodia
+      ca: Canada
+      cn: China
+      hk: Hong Kong
+      in: India
+      id: Indonesia
+      jp: Japan
+      kr: South Korea
+      lk: Sri Lanka
+      mo: Macau
+      my: Malaysia
+      ph: Philippines
+      sg: Singapore
+      tw: Taiwan
+      th: Thailand
+      us: United States
+      vn: Vietnam
+    Zone D:
+      at: Austria
+      be: Belgium
+      hr: Croatia
+      cz: Czech Republic
+      dk: Denmark
+      ec: Ecuador
+      fi: Finland
+      fr: France
+      de: Germany
+      gr: Greece
+      hu: Hungary
+      ie: Ireland
+      it: Italy
+      nl: Netherlands
+      no: Norway
+      pl: Poland
+      pt: Portugal
+      ro: Romania
+      si: Slovenia
+      es: Spain
+      se: Sweden
+      ch: Switzerland
+      gb: United Kingdom
+    Zone E:
+      br: Brazil
+      cl: Chile
+      cr: Costa Rica
+      sv: El Salvador
+      mx: Mexico
+      uy: Uruguay
+
 ---
 Only:
   environment: 'dev'

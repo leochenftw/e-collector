@@ -21,6 +21,7 @@ use Konekt\PdfInvoice\InvoicePrinter;
 use SilverStripe\Control\Email\Email;
 use SilverStripe\Control\Director;
 use Leochenftw\Grid;
+use Dynamic\CountryDropdownField\Fields\CountryDropdownField;
 
 /**
  * Description
@@ -126,7 +127,7 @@ class Order extends DataObject
     {
         $this->SameBilling  =   true;
         $member             =   Member::currentUser();
-        $cookie         =   Cookie::get('eCollectorCookie');
+        $cookie             =   Cookie::get('eCollectorCookie');
         if (empty($cookie)) {
             $cookie =   session_id();
             Cookie::set('eCollectorCookie', $cookie, $expiry = 30);
@@ -192,7 +193,7 @@ class Order extends DataObject
                 TextField::create('ShippingSuburb', 'Suburb'),
                 TextField::create('ShippingTown', 'Town'),
                 TextField::create('ShippingRegion', 'Region'),
-                TextField::create('ShippingCountry', 'Country'),
+                CountryDropdownField::create('ShippingCountry', 'Country')->setEmptyString('- select one -'),
                 TextField::create('ShippingPostcode', 'Postcode'),
                 TextField::create('ShippingPhone', 'Phone'),
             ]
@@ -209,7 +210,7 @@ class Order extends DataObject
                 TextField::create('BillingSuburb', 'Suburb'),
                 TextField::create('BillingTown', 'Town'),
                 TextField::create('BillingRegion', 'Region'),
-                TextField::create('BillingCountry', 'Country'),
+                CountryDropdownField::create('BillingCountry', 'Country')->setEmptyString('- select one -'),
                 TextField::create('BillingPostcode', 'Postcode'),
                 TextField::create('BillingPhone', 'Phone'),
             ]
@@ -432,21 +433,28 @@ class Order extends DataObject
     /**
      * Event handler called before writing to the database.
      */
-     public function onBeforeWrite()
-     {
-         parent::onBeforeWrite();
-         if ($this->SameBilling) {
-             $this->BillingOrganisation =   $this->ShippingOrganisation;
-             $this->BillingApartment    =   $this->ShippingApartment;
-             $this->BillingAddress      =   $this->ShippingAddress;
-             $this->BillingSuburb       =   $this->ShippingSuburb;
-             $this->BillingTown         =   $this->ShippingTown;
-             $this->BillingRegion       =   $this->ShippingRegion;
-             $this->BillingCountry      =   $this->ShippingCountry;
-             $this->BillingPostcode     =   $this->ShippingPostcode;
-             $this->BillingPhone        =   $this->ShippingPhone;
-         }
-     }
+    public function onBeforeWrite()
+    {
+        parent::onBeforeWrite();
+
+        if ($this->SameBilling) {
+            $this->BillingOrganisation =   $this->ShippingOrganisation;
+            $this->BillingApartment    =   $this->ShippingApartment;
+            $this->BillingAddress      =   $this->ShippingAddress;
+            $this->BillingSuburb       =   $this->ShippingSuburb;
+            $this->BillingTown         =   $this->ShippingTown;
+            $this->BillingRegion       =   $this->ShippingRegion;
+            $this->BillingCountry      =   $this->ShippingCountry;
+            $this->BillingPostcode     =   $this->ShippingPostcode;
+            $this->BillingPhone        =   $this->ShippingPhone;
+        }
+
+        if (!empty($this->ShippingCountry)) {
+            if ($freight = Freight::find_zone_freight($this->ShippingCountry)) {
+                $this->FreightID    =   $freight->ID;
+            }
+        }
+    }
 
      public function getGST()
      {

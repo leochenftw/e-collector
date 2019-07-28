@@ -1,7 +1,9 @@
 <?php
 
 namespace Leochenftw\eCommerce\eCollector\Model;
+use SilverStripe\Core\Config\Config;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\Forms\DropdownField;
 use SilverStripe\Assets\Image;
 use Leochenftw\Debugger;
 
@@ -24,11 +26,14 @@ class Freight extends DataObject
         'Website'               =>  'Varchar(1024)',
         'TrackingPage'          =>  'Varchar(1024)',
         'MeasurementUnit'       =>  'Enum("KG,Unit")',
+        'SingleItemPrice'       =>  'Currency',
         'BasePrice'             =>  'Currency',
         'AfterX'                =>  'Decimal',
         'Increment'             =>  'Currency',
         'ContainerPrice'        =>  'Currency',
-        'ContainerCapacity'     =>  'Decimal'
+        'ContainerCapacity'     =>  'Decimal',
+        'MaxPrice'              =>  'Currency',
+        'Zone'                  =>  'Varchar(128)'
     ];
 
     public function getData()
@@ -37,7 +42,7 @@ class Freight extends DataObject
             'id'        =>  $this->ID,
             'title'     =>  $this->Title,
             'url'       =>  $this->Website,
-            'logo'      =>  $this->getSummaryLogo(80)->getAbsoluteURL(),
+            'logo'      =>  $this->getSummaryLogo(80),
             'rate'      =>  $this->getSummaryPrice()
         ];
     }
@@ -85,7 +90,7 @@ class Freight extends DataObject
     public function getSummaryLogo($height = 20)
     {
         if ($this->Logo()->exists()) {
-            return $this->Logo()->ScaleHeight($height);
+            return $this->Logo()->ScaleHeight($height)->getAbsoluteURL();
         }
 
         return false;
@@ -131,9 +136,30 @@ class Freight extends DataObject
 
         $capacity   =   $fields->fieldByName('Root.Main.ContainerCapacity');
         $capacity->setDescription('The capacity of the container. e.g. a container can contain 10 items/KG. When there are 9 items, it will cost the customer 1 container price cost; When there are 11 items, the customer needs to pay for 2 containers. <strong style="text-decoration: underline;">Leave it blank or 0.00 if your container is free</strong>');
+        $fields->fieldByName('Root.Main.SingleItemPrice')->setDescription('This is used in Measurement Unit: Unit');
+        $fields->addFieldToTab(
+            'Root.Main',
+            DropdownField::create(
+                'Zone',
+                'Zone',
+                $this->list_zones()
+            ),
+            'SingleItemPrice'
+        );
 
         $this->extend('updateCMSFields', $fields);
         return $fields;
+    }
+
+    private function list_zones()
+    {
+        $list   =   [];
+        $zones  =   array_keys($this->config()->allowed_countries);
+        foreach ($zones as $zone) {
+            $list[$zone]    =   $zone;
+        }
+
+        return $list;
     }
 
     private function CalculateContainerCost($value)
@@ -166,4 +192,43 @@ class Freight extends DataObject
         return $this->BasePrice + ($unit - $this->AfterX) * $this->Increment + $this->CalculateContainerCost($unit);
     }
 
+    public function CalculateOrderCost(&$order)
+    {
+        if ($this->MeasurementUnit == 'KG') {
+            $weight =   $order->TotalWeight;
+            if ($weight <= $this->AfterX) {
+                return $this->BasePrice + $this->CalculateContainerCost($weight);
+            }
+
+            return $this->BasePrice + ($weight - $this->AfterX) * $this->Increment + $this->CalculateContainerCost($weight);
+        }
+
+        $unit =   $order->ShippableItemCount();
+
+        if ($unit == 1) {
+            return $this->SingleItemPrice;
+        }
+
+        return $this->BasePrice + ($unit - $this->AfterX) * $this->Increment + $this->CalculateContainerCost($unit);
+    }
+
+    public static function find_zone($country)
+    {
+        $zones  =   Config::inst()->get(__CLASS__, 'allowed_countries');
+        foreach ($zones as $key => $zone) {
+            foreach ($zone as $code => $name) {
+                if ($code == $country) {
+                    return $key;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public static function find_zone_freight($country)
+    {
+        $zone       =   static::find_zone($country);
+        return Freight::get()->filter(['Zone' => $zone])->first();
+    }
 }

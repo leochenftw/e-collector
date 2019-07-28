@@ -17,7 +17,7 @@ class eCollector
             return Order::get()->byID($order_id);
         }
 
-        $member         =   Security::getCurrentUser();
+        $member =   Security::getCurrentUser();
 
         if (!static::can_order($member)) {
             return null;
