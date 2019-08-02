@@ -189,7 +189,12 @@ class Freight extends DataObject
             return $this->BasePrice + $this->CalculateContainerCost($unit);
         }
 
-        return $this->BasePrice + ($unit - $this->AfterX) * $this->Increment + $this->CalculateContainerCost($unit);
+        $sum    =   $this->BasePrice + ($unit - $this->AfterX) * $this->Increment + $this->CalculateContainerCost($unit);
+        if ($sum > $this->MaxPrice) {
+            $sum    =   $this->MaxPrice;
+        }
+
+        return $sum;
     }
 
     public function CalculateOrderCost(&$order)
@@ -209,7 +214,12 @@ class Freight extends DataObject
             return $this->SingleItemPrice;
         }
 
-        return $this->BasePrice + ($unit - $this->AfterX) * $this->Increment + $this->CalculateContainerCost($unit);
+        $sum    =   $this->BasePrice + ($unit - $this->AfterX) * $this->Increment + $this->CalculateContainerCost($unit);
+        if ($sum > $this->MaxPrice) {
+            $sum    =   $this->MaxPrice;
+        }
+
+        return $sum;
     }
 
     public static function find_zone($country)
