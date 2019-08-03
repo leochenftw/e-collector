@@ -85,7 +85,8 @@ class Order extends DataObject
     ];
 
     private static $cascade_deletes = [
-        'Items'
+        'Items',
+        'Payments'
     ];
 
     /**
