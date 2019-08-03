@@ -39,7 +39,7 @@ class CleanupCarts extends BuildTask
     public function run($request)
     {
         $carts  =   Order::get()->filter(['Status' => 'Pending', 'Created:LessThanOrEqual' => strtotime('-30 days')]);
-
+        $count  =   $carts->count();
         foreach ($carts as $cart) {
             // print $cart->ClassName . PHP_EOL;
             if ($cart->ClassName != Order::class) {
@@ -48,6 +48,7 @@ class CleanupCarts extends BuildTask
             }
             $cart->delete();
         }
-        print PHP_EOL;
+
+        print $count . 'redundant cart' . ($count > 1 ? 's have ' : ' has ') . 'been recycled!';
     }
 }
