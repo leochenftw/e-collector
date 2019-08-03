@@ -49,6 +49,6 @@ class CleanupCarts extends BuildTask
             $cart->delete();
         }
 
-        print $count . ' redundant cart' . ($count > 1 ? 's have ' : ' has ') . 'been recycled!';
+        print $count . ' redundant cart' . ($count > 1 ? 's have ' : ' has ') . 'been recycled!' . PHP_EOL;
     }
 }
