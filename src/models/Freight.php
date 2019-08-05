@@ -236,6 +236,19 @@ class Freight extends DataObject
         return null;
     }
 
+    public static function get_allowed_countries()
+    {
+        $zones      =   Config::inst()->get(__CLASS__, 'allowed_countries');
+        $countries  =   [];
+        foreach ($zones as $key => $zone) {
+            foreach ($zone as $code => $name) {
+                $countries[]    =   $code;
+            }
+        }
+
+        return $countries;
+    }
+
     public static function find_zone_freight($country)
     {
         $zone       =   static::find_zone($country);
