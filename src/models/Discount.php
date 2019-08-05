@@ -42,7 +42,9 @@ class Discount extends DataObject
         'DiscountRate'  =>  'Decimal',
         'Type'          =>  'Enum("Member Type,Coupon")',
         'CouponCode'    =>  'Varchar(128)',
-        'Used'          =>  'Boolean'
+        'NumCopies'     =>  'Int',
+        'Used'          =>  'Boolean',
+        'InfiniteUse'   =>  'Boolean'
     ];
 
     private static $indexes = [
@@ -123,8 +125,10 @@ class Discount extends DataObject
             'Root.Main',
             TextField::create(
                 'NumCopies', 'Create another "n" copies of promotion coupon.'
-            )->setDescription('Leave blank if you only wish to create one')
+            )->setDescription('Leave blank or input 0 if you only wish to create one')
         );
+
+        $fields->fieldByName('Root.Main.InfiniteUse')->setTitle('This coupon can be used infinitely');
 
         return $fields;
     }
@@ -160,13 +164,24 @@ class Discount extends DataObject
     }
 
     /**
+     * Event handler called before writing to the database.
+     */
+    public function onBeforeWrite()
+    {
+        parent::onBeforeWrite();
+        if ($this->InfiniteUse && $this->Used) {
+            $this->Used =   false;
+        }
+    }
+
+    /**
      * Event handler called after writing to the database.
      */
     public function onAfterWrite()
     {
         parent::onAfterWrite();
-        if (!empty($this->record['NumCopies'])) {
-            $n  =   $this->record['NumCopies'];
+        if (!empty($this->NumCopies)) {
+            $n  =   $this->NumCopies;
             for ($i = 0; $i < $n; $i++) {
                 $coupon                 =   Discount::create();
                 $coupon->Title          =   $this->Title;
@@ -175,6 +190,8 @@ class Discount extends DataObject
                 $coupon->CouponCode     =   strtoupper(substr(sha1(rand()), 0, 8));
                 $coupon->write();
             }
+            $this->NumCopies    =   0;
+            $this->write();
         }
     }
 }
