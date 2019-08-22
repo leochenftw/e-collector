@@ -17,7 +17,8 @@ class PaystationController extends eCollectorController
             Injector::inst()->get(LoggerInterface::class)->info('Paystation:: get back');
             if ($token = $request->getVar('ti')) {
                 $result = $this->handle_getback($token);
-                return $this->route($result);
+                // return $this->route($result);
+                return 'Thank you!';
             }
         }
 
