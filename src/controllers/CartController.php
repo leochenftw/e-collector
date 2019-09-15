@@ -12,7 +12,7 @@ use Leochenftw\eCommerce\eCollector\API\Paystation;
 use Leochenftw\eCommerce\eCollector\Model\Order;
 use SilverStripe\View\ArrayData;
 use SilverStripe\Control\HTTPRequest;
-
+use Page;
 /**
  * Description
  *
@@ -28,7 +28,12 @@ class CartController extends PageController
             $this->redirect($this->Link());
         }
 
-        return $this->renderWith(['Cart', 'Page']);
+        return parent::index($request);
+    }
+
+    public function getData()
+    {
+        return Page::create()->getData();
     }
 
     private function do_update()
