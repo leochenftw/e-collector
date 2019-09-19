@@ -466,7 +466,7 @@ class Order extends DataObject
              $gst   +=  $item->PayableTotal * $rate;
          }
 
-         return $gst;
+         return round($gst * 10) / 10;
      }
 
      public function Discount()
