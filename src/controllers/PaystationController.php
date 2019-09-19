@@ -17,8 +17,7 @@ class PaystationController extends eCollectorController
             Injector::inst()->get(LoggerInterface::class)->info('Paystation:: get back');
             if ($token = $request->getVar('ti')) {
                 $result = $this->handle_getback($token);
-                // return $this->route($result);
-                return 'Thank you!';
+                return $this->route($result);
             }
         }
 
@@ -28,6 +27,7 @@ class PaystationController extends eCollectorController
         if ($xml =   simplexml_load_string($request->getBody())) {
             $json   =   json_encode($xml);
 
+            Injector::inst()->get(LoggerInterface::class)->info('Paystation:: post back. XML FOLLOW');
             Injector::inst()->get(LoggerInterface::class)->info($json);
 
             $token  =   $xml->ti;
@@ -39,9 +39,11 @@ class PaystationController extends eCollectorController
 
             // Injector::inst()->get(LoggerInterface::class)->info('ti found, proceed');
 
-            $this->handle_postback($xml);
+            return $this->handle_postback($xml);
         }
 
+        Injector::inst()->get(LoggerInterface::class)->info('NO XML. SEE FOLLOW');
+        Injector::inst()->get(LoggerInterface::class)->info($request->getBody());
         return $this->httpError(400, 'XML?');
     }
 
@@ -73,6 +75,7 @@ class PaystationController extends eCollectorController
             return 'Cool, thanks!';
         }
 
+        Injector::inst()->get(LoggerInterface::class)->info('POST:: NO SUCH ORDER');
         return $this->httpError(400, 'Order not found');
     }
 
@@ -83,7 +86,7 @@ class PaystationController extends eCollectorController
             $result         =   $this->request->getVars();
         }
 
-        if ($Order = $this->getOrder($result['merchant_ref'])) {
+        if ($Order = $this->getOrder(!empty($result->merchant_ref) ? $result->merchant_ref : $result['merchant_ref'])) {
             $payment = $Order->Payments()->filter(['TransacID' => $result['ti']])->first();
 
             if (empty($payment)) {
@@ -105,6 +108,7 @@ class PaystationController extends eCollectorController
             return $this->route_data($payment->Status, $Order->ID);
         }
 
+        Injector::inst()->get(LoggerInterface::class)->info('GET:: NO SUCH ORDER');
         return $this->httpError(400, 'Order not found');
     }
 
