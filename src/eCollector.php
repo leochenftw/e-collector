@@ -41,6 +41,12 @@ class eCollector
 
         if (empty($order)) {
             $order      =   Order::create();
+        } else {
+            foreach ($order->Items() as $item) {
+                if ($item->hasMethod('syncProduct')) {
+                    $item->syncProduct(true);
+                }
+            }
         }
 
         $order->UpdateAmountWeight();
