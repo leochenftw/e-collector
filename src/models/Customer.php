@@ -48,7 +48,6 @@ class Customer extends Member
     {
         $fields     =   parent::getCMSFields();
 
-
         $fields->removeByName([
             'Locale',
             'FailedLoginCount',
