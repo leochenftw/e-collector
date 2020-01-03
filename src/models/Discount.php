@@ -145,13 +145,17 @@ class Discount extends DataObject
     public function getData()
     {
         if (!$this->exists()) return null;
-        return [
+        $data   =   [
             'id'    =>  $this->ID,
             'title' =>  $this->Title,
             'by'    =>  $this->DiscountBy == 'ByPercentage' ? '%' : '-',
             'rate'  =>  (float) $this->DiscountRate,
             'code'  =>  $this->CouponCode
         ];
+
+        $this->extend('CustomGetData', $data);
+
+        return $data;
     }
 
     public static function check_valid($promo_code)
