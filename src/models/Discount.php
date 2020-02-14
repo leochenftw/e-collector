@@ -44,7 +44,10 @@ class Discount extends DataObject
         'CouponCode'    =>  'Varchar(128)',
         'NumCopies'     =>  'Int',
         'Used'          =>  'Boolean',
-        'InfiniteUse'   =>  'Boolean'
+        'InfiniteUse'   =>  'Boolean',
+        'ValidFrom'     =>  'Datetime',
+        'ValidUntil'    =>  'Datetime',
+        'LifePoint'     =>  'Int'
     ];
 
     private static $indexes = [
@@ -77,6 +80,7 @@ class Discount extends DataObject
     public function populateDefaults()
     {
         $this->Type         =   'Coupon';
+        $this->LifePoint    =   1;
         $this->CouponCode   =   strtoupper(substr(sha1(time()), 0, 8));
     }
 
@@ -130,6 +134,10 @@ class Discount extends DataObject
 
         $fields->fieldByName('Root.Main.InfiniteUse')->setTitle('This coupon can be used infinitely');
 
+        if ($lp = $fields->fieldByName('Root.Main.LifePoint')) {
+            $lp->setTitle('How many times this discount coupon can be used?');
+        }
+
         return $fields;
     }
 
@@ -161,6 +169,22 @@ class Discount extends DataObject
     public static function check_valid($promo_code)
     {
         if ($coupon = Discount::get()->filter(['CouponCode' => $promo_code, 'Used' => false])->first()) {
+
+            $valid_from     =   strtotime($coupon->ValidFrom);
+            $valid_until    =   strtotime($coupon->ValidUntil);
+
+            if (!empty($valid_from) && $valid_from > time()) {
+                return null;
+            }
+
+            if (!empty($valid_until) && $valid_until < time()) {
+                return null;
+            }
+
+            if (!$coupon->InfiniteUse && empty($coupon->LifePoint)) {
+                return null;
+            }
+
             return $coupon->getData();
         }
 
