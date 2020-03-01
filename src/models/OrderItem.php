@@ -25,7 +25,7 @@ class OrderItem extends DataObject
      * @var array
      */
     private static $db = [
-        'Quantity'      =>  'Int',
+        'Quantity'      =>  'Decimal',
         'Subtotal'      =>  'Currency',
         'Subweight'     =>  'Decimal',
         'isRefunded'    =>  'Boolean',

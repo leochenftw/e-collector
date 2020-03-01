@@ -403,6 +403,7 @@ class Order extends DataObject
         $payable    =   0;
 
         foreach ($this->Items() as $item) {
+            // $item->write(); // trigger onBeforeWrite
             $amount     +=  $item->Subtotal;
             $weight     +=  $item->Subweight;
             $payable    +=  $item->PayableTotal;

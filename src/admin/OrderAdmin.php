@@ -39,9 +39,9 @@ class OrderAdmin extends ModelAdmin
         $list   =   parent::getList();
 
         if (Member::currentUser() && Member::currentUser()->isDefaultadmin()) {
-            return $list;
+            return $list->filter(['ClassName' => Order::class]);
         }
-        
+
         return $list->filter(['ClassName' => Order::class])->exclude(['Status' => 'Pending']);
     }
 
