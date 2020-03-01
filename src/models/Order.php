@@ -411,6 +411,7 @@ class Order extends DataObject
         $this->TotalAmount  =   $amount;
         $this->TotalWeight  =   $weight;
         $this->PayableTotal =   $payable;
+        $this->extend('updateOrderFields', $this);
         $this->write();
     }
 

@@ -3,7 +3,7 @@
 namespace Leochenftw\eCommerce\eCollector\Admin;
 use SilverStripe\Admin\ModelAdmin;
 use Leochenftw\eCommerce\eCollector\Model\Order;
-
+use SilverStripe\Security\Member;
 /**
  * Description
  *
@@ -38,6 +38,10 @@ class OrderAdmin extends ModelAdmin
     {
         $list   =   parent::getList();
 
+        if (Member::currentUser() && Member::currentUser()->isDefaultadmin()) {
+            return $list;
+        }
+        
         return $list->filter(['ClassName' => Order::class])->exclude(['Status' => 'Pending']);
     }
 
