@@ -181,7 +181,7 @@ class Discount extends DataObject
                 return null;
             }
 
-            if (!$coupon->InfiniteUse && empty($coupon->LifePoint)) {
+            if (!$coupon->InfiniteUse && $coupon->LifePoint <= 0) {
                 return null;
             }
 
@@ -199,6 +199,10 @@ class Discount extends DataObject
         parent::onBeforeWrite();
         if ($this->InfiniteUse && $this->Used) {
             $this->Used =   false;
+        }
+
+        if (!$this->InfiniteUse && $this->LifePoint <= 0) {
+            $this->Used =   true;
         }
     }
 
