@@ -77,6 +77,15 @@ class PoliController extends eCollectorController
     {
         if ($result['TransactionStatus'] == 'Completed') {
             $result['TransactionStatus']    =   'Success';
+        } elseif (
+            $result['TransactionStatus'] == 'Initiated' ||
+            $result['TransactionStatus'] == 'FinancialInstitution Selected' ||
+            $result['TransactionStatus'] == 'EulaAccepted' ||
+            $result['TransactionStatus'] == 'Unknown' ||
+            $result['TransactionStatus'] == 'ReceiptUnverified' ||
+            $result['TransactionStatus'] == 'TimedOut'
+        ) {
+            $result['TransactionStatus']    =   'Pending';
         }
 
         return $result['TransactionStatus'];

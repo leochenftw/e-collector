@@ -96,7 +96,6 @@ class Order extends DataObject
      */
     private static $summary_fields = [
         'ID'                    =>  'ID',
-        'ItemCount'             =>  'Item(s)',
         'Status'                =>  'Status'
     ];
 
@@ -106,6 +105,9 @@ class Order extends DataObject
      */
     private static $searchable_fields = [
         'MerchantReference',
+        'Email',
+        'ShippingFirstname',
+        'ShippingSurname',
         'Status'
     ];
 

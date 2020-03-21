@@ -4,6 +4,9 @@ namespace Leochenftw\eCommerce\eCollector\Admin;
 use SilverStripe\Admin\ModelAdmin;
 use Leochenftw\eCommerce\eCollector\Model\Order;
 use SilverStripe\Security\Member;
+use Symbiote\GridFieldExtensions\GridFieldConfigurablePaginator;
+use SilverStripe\Forms\GridField\GridFieldPaginator;
+
 /**
  * Description
  *
@@ -43,6 +46,22 @@ class OrderAdmin extends ModelAdmin
         }
 
         return $list->filter(['ClassName' => Order::class])->exclude(['Status' => 'Pending']);
+    }
+
+    public function getEditForm($id = null, $fields = null)
+    {
+        $form = parent::getEditForm();
+        $model = $this->sanitiseClassName($this->modelClass);
+        $config = $form->Fields()->fieldByName($model)->getConfig();
+
+        $count  =   $this->getList()->count();
+
+        if ($count > 30) {
+            $config->removeComponentsByType(GridFieldPaginator::class)
+                    ->addComponent($paginator = new GridFieldConfigurablePaginator(30, [30, $count]));
+        }
+
+        return $form;
     }
 
 }
