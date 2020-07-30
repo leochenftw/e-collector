@@ -231,8 +231,8 @@ class Order extends DataObject
             $tracking_field->setDescription('To send tracking number to the customer, please choose a freight provide, fill the tracking number, and then Apply Changes. <br />You will see the button after page refresh');
         }
 
-        $frozen =   $fields->fieldByName('Root.Main.Status')->performReadonlyTransformation();
-        $fields->replaceField('Status', $frozen);
+        // $frozen =   $fields->fieldByName('Root.Main.Status')->performReadonlyTransformation();
+        // $fields->replaceField('Status', $frozen);
 
         return $fields;
     }

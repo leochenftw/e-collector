@@ -47,7 +47,8 @@ class Discount extends DataObject
         'InfiniteUse'   =>  'Boolean',
         'ValidFrom'     =>  'Datetime',
         'ValidUntil'    =>  'Datetime',
-        'LifePoint'     =>  'Int'
+        'LifePoint'     =>  'Int',
+        'CanUseOnFreeShipping' => 'Boolean'
     ];
 
     private static $indexes = [
@@ -65,6 +66,7 @@ class Discount extends DataObject
     private static $summary_fields = [
         'Title',
         'CouponCode',
+        'CanUseOnFreeShipping',
         'Used'
     ];
 
@@ -166,7 +168,7 @@ class Discount extends DataObject
         return $data;
     }
 
-    public static function check_valid($promo_code)
+    public static function byCode($promo_code)
     {
         if ($coupon = Discount::get()->filter(['CouponCode' => $promo_code, 'Used' => false])->first()) {
 
@@ -185,6 +187,15 @@ class Discount extends DataObject
                 return null;
             }
 
+            return $coupon;
+        }
+
+        return null;
+    }
+
+    public static function check_valid($promo_code)
+    {
+        if ($coupon = static::byCode($promo_code)) {
             return $coupon->getData();
         }
 
