@@ -300,7 +300,14 @@ class Order extends DataObject
         }
 
         if (!empty($this->BillingCountry)) {
-            $billing_to[]   =   $this->BillingCountry . (!empty($this->BillingPostcode) ? (', ' . $this->BillingPostcode) : '');
+
+            if ($this->hasMethod('getTranslatedBillingCountry')) {
+                $country = $this->TranslatedBillingCountry;
+            } else {
+                $country = $this->BillingCountry;
+            }
+
+            $billing_to[]   =   $country . (!empty($this->BillingPostcode) ? (', ' . $this->BillingPostcode) : '');
         }
 
         $billing_to[]   =   $this->Email . (
