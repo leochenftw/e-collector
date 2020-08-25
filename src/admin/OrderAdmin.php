@@ -33,16 +33,4 @@ class OrderAdmin extends ModelAdmin
     private static $menu_title = 'Orders';
 
     private static $menu_icon = 'leochenftw/e-collector: client/img/shopping-cart.png';
-
-    public function getList()
-    {
-        $list   =   parent::getList();
-        if ($member = Member::currentUser()) {
-            if ($member->isDefaultadmin()) {
-                return $list->filter(['ClassName' => Order::class]);
-            }
-        }
-        return $list->filter(['ClassName' => Order::class])->exclude(['Status' => 'Pending']);
-    }
-
 }

@@ -12,6 +12,9 @@ use Leochenftw\eCommerce\eCollector\API\Paystation;
 use Leochenftw\eCommerce\eCollector\Model\Order;
 use SilverStripe\View\ArrayData;
 use SilverStripe\Control\HTTPRequest;
+use SilverStripe\Core\Config\Config;
+use Leochenftw\eCommerce\eCollector\Model\Freight;
+use SilverStripe\Security\Member;
 use Page;
 /**
  * Description
@@ -33,12 +36,72 @@ class CartController extends PageController
 
     public function getData()
     {
-        return Page::create()->getData();
+
+        $data = Page::create()->Data;
+
+        $request = $this->request;
+
+        if ($request->Param('second') == 'checkout') {
+            $data['pagetype'] = 'Checkout';
+            $data['type'] = 'Cart';
+            $details = eCollector::get_cart($request->getVar('order_id'))->get_checkout_data();
+            $data['title'] = $request->Param('Result') ? 'Order Details' : 'Checkout';
+            $data['checkout'] = $details;
+            $data['countries'] = $this->get_all_countries();
+            $data['base_country'] = SiteConfig::current_site_config()->StoreCountry;
+            $suggested_country = $request->getSession()->get('country');
+            $suggested_country = empty($suggested_country) ? 'nz' : $suggested_country;
+            if (empty($data['checkout']['shipping']['country'])) {
+                $data['checkout']['shipping']['country']    =   $request->getSession()->get('country');
+            }
+
+            if (empty($data['checkout']['billing']['country'])) {
+                $data['checkout']['billing']['country']    =   $request->getSession()->get('country');
+            }
+        } elseif (empty($request->Param('second'))) {
+            $cart = eCollector::get_cart();
+            $data['title'] = 'Shopping Cart';
+            $data['cart'] = $cart ? $cart->Data : null;
+            $member = Member::currentUser();
+            $data['can_discount'] = $member && $member->can_discount();
+        }
+
+        return $data;
+    }
+
+    private function get_all_countries()
+    {
+        $list       =   [];
+        $zones      =   Config::inst()->get(Freight::class, 'allowed_countries');
+        foreach ($zones as $zone => $countries) {
+            foreach ($countries as $code => $country) {
+                $list[$code]    =   $country;
+            }
+        }
+
+        asort($list);
+
+        return $list;
+    }
+
+    private function get_country()
+    {
+        return 'nz';
+        $ip =   $_SERVER['REMOTE_ADDR'];
+        // Debugger::inspect($ip);
+        try {
+            $client     =   new Client(['base_uri' => 'http://api.wipmania.com/']);
+            $response   =   $client->request('GET',  $ip);
+            $response   =   $response->getBody()->getContents();
+            return strtolower($response);
+        } catch (ClientException $e) {
+            return 'nz';
+        }
     }
 
     private function do_update()
     {
-        $item               =   $this->getCart()->Items()->byID($this->request->postVar('id'));
+        $item = $this->getCart()->Items()->byID($this->request->postVar('id'));
 
         if ($this->request->postVar('qty') == 0) {
             $item->delete();
