@@ -1,6 +1,7 @@
 <?php
 
 namespace Leochenftw\eCommerce;
+use SilverStripe\Dev\Debug;
 use SilverStripe\Security\Security;
 use Leochenftw\Debugger;
 use Leochenftw\eCommerce\eCollector\Model\Customer;
@@ -48,8 +49,6 @@ class eCollector
                 }
             }
         }
-
-        $order->UpdateAmountWeight();
 
         return $order;
     }
