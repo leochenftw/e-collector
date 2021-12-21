@@ -50,6 +50,10 @@ class eCollector
             }
         }
 
+        if (!$order->exists()) {
+            $order->write();
+        }
+
         return $order;
     }
 
