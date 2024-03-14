@@ -242,7 +242,13 @@ class Order extends DataObject
 
         $invoice = new InvoicePrinter();
         if ($siteconfig->StoreLogo()->exists()) {
-            $invoice->setLogo($siteconfig->StoreLogo()->getAbsoluteURL());   //logo image path
+            try {
+                $invoice->setLogo($siteconfig->StoreLogo()->getAbsoluteURL());   //logo image path
+            } catch (DivisionByZeroError $e) {
+                // swallow error silently
+            } catch(ErrorException $e) {
+                // swallow error silently
+            }
         }
 
         $invoice->setColor("#000000");      // pdf color scheme
