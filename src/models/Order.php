@@ -22,6 +22,8 @@ use SilverStripe\Control\Email\Email;
 use SilverStripe\Control\Director;
 use Leochenftw\Grid;
 use Dynamic\CountryDropdownField\Fields\CountryDropdownField;
+use Psr\Log\LoggerInterface;
+use SilverStripe\Core\Injector\Injector;
 
 /**
  * Description
@@ -241,12 +243,18 @@ class Order extends DataObject
         $payment    =   $this->getSuccessPayment();
 
         $invoice = new InvoicePrinter();
-        if ($siteconfig->StoreLogo()->exists()) {
+
+        $logo = Config::inst()->get('StoreLogo','filePath');
+        if ($logo && file_exists(getcwd() . $logo)) {
             try {
-                $invoice->setLogo($siteconfig->StoreLogo()->getAbsoluteURL());   //logo image path
-            } catch (DivisionByZeroError $e) {
+                $invoice->setLogo(getcwd() . $logo);   //logo image path
+            } catch (\DivisionByZeroError $e) {
                 // swallow error silently
-            } catch(ErrorException $e) {
+            } catch(\ErrorException $e) {
+                Injector::inst()->get(LoggerInterface::class)->error($e);
+                // swallow error silently
+            } catch(\Exception $e) {
+                Injector::inst()->get(LoggerInterface::class)->error($e);
                 // swallow error silently
             }
         }
